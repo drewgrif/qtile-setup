@@ -268,6 +268,26 @@ def kanagawa():
 	foregroundColorTwo = "#C8C093"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
+#GitHub Dark
+def github_dark():
+	colors = [["#0d1117", "#0d1117"],  #background (dark) [0]
+			   ["#2f363d", "#2f363d"],  #invisibles/dark grey [1]
+			   ["#d0d7de", "#d0d7de"],  #foreground (light grey) [2]
+			   ["#539bf5", "#539bf5"],  #blue [3]
+			   ["#58a6ff", "#58a6ff"],  #caret/light blue [4]
+			   ["#3fb950", "#3fb950"],  #green [5]
+			   ["#d29922", "#d29922"],  #yellow [6]
+			   ["#bc8cff", "#bc8cff"],  #magenta [7]
+			   ["#415555", "#415555"],  #selection [8]
+			   ['#ff7b72', '#ff7b72'],  #red [9]
+			   ["#39c5cf", "#39c5cf"]]  #cyan [10]
+			   
+	backgroundColor = "#0d1117"
+	foregroundColor = "#d0d7de"
+	workspaceColor = "#58a6ff"
+	foregroundColorTwo = "#8b949e"
+	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
+
 
 
 

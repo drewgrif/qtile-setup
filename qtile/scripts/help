@@ -1,38 +1,238 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-dwm_keybindings_file="$HOME/.config/suckless/dwm/keybindings.txt"
-sxhkdrc_file="$HOME/.config/suckless/sxhkd/sxhkdrc"
+import os
+import sys
+import subprocess
+import importlib.util
 
-# Read DWM keybindings (first section)
-dwm_bindings=$(awk -F'\t' '
-    { printf "DWM  |%-30s|%-40s\n", $1, $2 }
-' "$dwm_keybindings_file")
+def find_config():
+    """Find the Qtile config.py file"""
+    locations = [
+        os.path.expanduser("~/.config/qtile/config.py"),
+        os.path.join(os.path.dirname(__file__), "..", "config.py")
+    ]
+    
+    for path in locations:
+        if os.path.exists(path):
+            return os.path.abspath(path)
+    
+    print("Error: Could not find Qtile config.py")
+    sys.exit(1)
 
-# Parse sxhkdrc keybindings (second section)
-sxhkd_bindings=$(awk '
-    /^[a-z]/ && last { 
-        printf "SXHKD|%-30s|%-40s\n", $0, last 
+def load_config(config_path):
+    """Load the config.py module"""
+    spec = importlib.util.spec_from_file_location("config", config_path)
+    config = importlib.util.module_from_spec(spec)
+    
+    # Add the config directory to sys.path for imports
+    sys.path.insert(0, os.path.dirname(config_path))
+    
+    try:
+        spec.loader.exec_module(config)
+        return config
+    except Exception as e:
+        raise e
+
+def format_modifiers(mods):
+    """Convert modifier list to readable format"""
+    mod_map = {
+        'mod4': 'Super',
+        'mod': 'Super',
+        'mod1': 'Alt',
+        'shift': 'Shift',
+        'control': 'Ctrl'
     }
-    { last="" } 
-    /^#/ { last=substr($0, 3) }' "$sxhkdrc_file")
+    formatted = []
+    for m in mods:
+        formatted.append(mod_map.get(m, m))
+    return '+'.join(formatted)
 
-# Combine with DWM first
-combined_bindings="$dwm_bindings"$'\n'"$sxhkd_bindings"
+def categorize_keybinding(desc, binding):
+    """Categorize keybinding based on description and binding"""
+    desc_lower = desc.lower()
+    
+    if any(word in desc_lower for word in ['help', 'keybind']):
+        return ('Help', 0)
+    elif any(word in desc_lower for word in ['restart', 'quit', 'exit', 'shutdown']):
+        return ('System', 1)
+    elif any(word in desc_lower for word in ['close', 'kill']):
+        return ('Window Control', 2)
+    elif any(word in desc_lower for word in ['focus', 'move focus']):
+        return ('Focus', 3)
+    elif any(word in desc_lower for word in ['move window', 'shuffle']):
+        return ('Window Movement', 4)
+    elif any(word in desc_lower for word in ['grow', 'shrink', 'resize']):
+        return ('Window Resize', 5)
+    elif any(word in desc_lower for word in ['layout', 'floating', 'normalize']):
+        return ('Layout', 6)
+    elif any(word in desc_lower for word in ['group', 'workspace']):
+        return ('Workspaces', 7)
+    elif any(word in desc_lower for word in ['launch', 'spawn', 'open']):
+        return ('Applications', 8)
+    elif any(word in desc_lower for word in ['volume', 'brightness', 'screenshot']):
+        return ('Media/System', 9)
+    else:
+        return ('Other', 10)
 
-# Format for rofi display
-formatted_keybindings=$(echo "$combined_bindings" | column -t -s '|')
+def get_keybindings(config):
+    """Extract keybindings from config"""
+    keybindings = []
+    
+    for key in config.keys:
+        # Get modifiers and key
+        mods = format_modifiers(key.modifiers)
+        key_name = key.key
+        
+        # Get description - prefer desc attribute, otherwise parse commands
+        desc = None
+        if hasattr(key, 'desc') and key.desc:
+            desc = key.desc
+        else:
+            # Try to parse from commands
+            if hasattr(key, 'commands') and key.commands:
+                cmd = key.commands[0]
+                if hasattr(cmd, 'name'):
+                    if cmd.name == 'spawn' and hasattr(cmd, 'args') and cmd.args:
+                        app = cmd.args[0].split()[0]
+                        # Clean up common paths
+                        if '/' in app:
+                            app = os.path.basename(app)
+                        desc = f"Launch {app}"
+                    else:
+                        # Map common command names
+                        cmd_map = {
+                            'kill': 'Close window',
+                            'restart': 'Restart Qtile',
+                            'shutdown': 'Quit Qtile',
+                            'next_layout': 'Next layout',
+                            'toggle_floating': 'Toggle floating',
+                            'normalize': 'Reset window sizes',
+                            'up': 'Focus up',
+                            'down': 'Focus down',
+                            'left': 'Focus left',
+                            'right': 'Focus right',
+                            'shuffle_up': 'Move window up',
+                            'shuffle_down': 'Move window down',
+                            'shuffle_left': 'Move window left',
+                            'shuffle_right': 'Move window right',
+                            'grow': 'Grow window',
+                            'shrink': 'Shrink window',
+                            'grow_right': 'Grow right',
+                            'grow_left': 'Grow left',
+                            'toscreen': 'Switch to group',
+                            'togroup': 'Move to group'
+                        }
+                        desc = cmd_map.get(cmd.name, cmd.name.replace('_', ' ').title())
+        
+        if not desc:
+            desc = "Unknown action"
+        
+        # Format binding
+        binding = f"{mods}+{key_name}" if mods else key_name
+        keybindings.append((binding, desc))
+    
+    # Sort by category, then by description
+    keybindings.sort(key=lambda x: (categorize_keybinding(x[1], x[0])[1], x[1]))
+    
+    return keybindings
 
-# Show combined list in rofi
-selected=$(echo "$formatted_keybindings" | rofi -dmenu -normal-window -i -p "Keybindings" -line-padding 4 -hide-scrollbar -theme ~/.config/suckless/rofi/keybinds.rasi)
+def parse_config_fallback(config_path):
+    """Parse config.py without importing (fallback when qtile not installed)"""
+    import re
+    
+    with open(config_path, 'r') as f:
+        content = f.read()
+    
+    # Find keys section
+    keys_match = re.search(r'keys\s*=\s*\[(.*?)\n\]', content, re.DOTALL)
+    if not keys_match:
+        return []
+    
+    keybindings = []
+    lines = keys_match.group(1).split('\n')
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith('Key('):
+            # Extract the full Key definition (may span multiple lines)
+            key_def = line
+            paren_count = line.count('(') - line.count(')')
+            while paren_count > 0 and i + 1 < len(lines):
+                i += 1
+                line = lines[i]
+                key_def += ' ' + line.strip()
+                paren_count += line.count('(') - line.count(')')
+            
+            # Parse the Key definition
+            mod_match = re.search(r'Key\(\s*\[(.*?)\]', key_def)
+            key_match = re.search(r'\],\s*["\']([^"\']+)["\']', key_def)
+            desc_match = re.search(r'desc\s*=\s*["\']([^"\']+)["\']', key_def)
+            
+            if mod_match and key_match:
+                mods = [m.strip().strip('"\'') for m in mod_match.group(1).split(',') if m.strip()]
+                key = key_match.group(1)
+                desc = desc_match.group(1) if desc_match else "Action"
+                
+                # Format modifiers
+                mod_map = {'mod4': 'Super', 'mod': 'Super', 'mod1': 'Alt', 'shift': 'Shift', 'control': 'Ctrl'}
+                formatted_mods = [mod_map.get(m, m) for m in mods]
+                binding = '+'.join(formatted_mods + [key]) if formatted_mods else key
+                
+                keybindings.append((binding, desc))
+        i += 1
+    
+    # Sort by category, then by description
+    keybindings.sort(key=lambda x: (categorize_keybinding(x[1], x[0])[1], x[1]))
+    return keybindings
 
-# Check if user selected something
-if [ -n "$selected" ]; then
-    # Determine if it's from SXHKD (and executable)
-    source=$(echo "$selected" | awk '{print $1}')
-    if [[ "$source" == "SXHKD" ]]; then
-        command=$(echo "$selected" | awk -F'|' '{print $3}' | xargs)
-        if [ -n "$command" ]; then
-            nohup $command &>/dev/null &
-        fi
-    fi
-fi
+def main():
+    # Find config
+    config_path = find_config()
+    
+    try:
+        # Try to load config normally
+        config = load_config(config_path)
+        keybindings = get_keybindings(config)
+    except (ImportError, Exception) as e:
+        # Fallback to parsing without import
+        keybindings = parse_config_fallback(config_path)
+    
+    # Format for rofi with category headers
+    rofi_lines = []
+    current_category = None
+    
+    for binding, desc in keybindings:
+        category, _ = categorize_keybinding(desc, binding)
+        if category != current_category:
+            if rofi_lines:  # Add separator between categories
+                rofi_lines.append("")
+            rofi_lines.append(f"── {category} ──")
+            current_category = category
+        rofi_lines.append(f"{binding:<30} {desc}")
+    
+    rofi_input = "\n".join(rofi_lines)
+    
+    # Show in rofi
+    try:
+        process = subprocess.Popen(
+            ["rofi", "-dmenu", "-line-padding", "4", 
+             "-hide-scrollbar", "-show-icons", "-theme", 
+             os.path.expanduser("~/.config/qtile/rofi/keybinds.rasi"), 
+             "-p", "Keybindings"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        stdout, stderr = process.communicate(input=rofi_input)
+        
+        if process.returncode != 0 and stderr:
+            print(f"Rofi error: {stderr}")
+    except FileNotFoundError:
+        print("Error: rofi not found. Please install rofi.")
+        print("\nKeybindings:")
+        print(rofi_input)
+
+if __name__ == "__main__":
+    main()

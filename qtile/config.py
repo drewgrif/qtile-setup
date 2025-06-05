@@ -1,4 +1,4 @@
-# Copyright (c) 2024 JustAGuyLinux
+# Copyright (c) 2025 JustAGuyLinux
 
 from libqtile import bar, layout, widget
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
@@ -8,43 +8,70 @@ import os
 import subprocess
 
 from libqtile import hook
-import colors
+from colors import github_dark
+
+def notify_layout():
+    """Show current layout in notification"""
+    def _notify_layout(qtile):
+        layout_name = qtile.current_group.layout.name
+        layout_map = {
+            "monadtall": "Monad Tall",
+            "columns": "Columns", 
+            "bsp": "BSP",
+            "treetab": "Tree Tab",
+            "matrix": "Matrix",
+            "plasma": "Plasma",
+            "floating": "Floating",
+            "spiral": "Spiral",
+            "ratiotile": "Ratio Tile",
+            "max": "Maximized"
+        }
+        display_name = layout_map.get(layout_name, layout_name.title())
+        subprocess.run(["notify-send", "Layout", display_name, "-t", "1500", "-u", "low"])
+    return _notify_layout
+
+def notify_restart():
+    """Show restart notification"""
+    def _notify_restart(qtile):
+        subprocess.run(["notify-send", "Qtile", "Restarting...", "-t", "2000", "-u", "normal"])
+    return _notify_restart
 
 @hook.subscribe.startup_once
 def autostart():
-   home = os.path.expanduser('~/.config/qtile/autostart.sh')
+   home = os.path.expanduser('~/.config/qtile/scripts/autostart.sh')
    subprocess.run([home])
 
 mod = "mod4"
-# terminal = "kitty"
+terminal = "wezterm"
+browser = "firefox"
 
-colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.monokai()
+colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo = github_dark()
 
 keys = [
 
 # Add dedicated sxhkdrc to autostart.sh script
 
 # CLOSE WINDOW, RELOAD AND QUIT QTILE
-    Key([mod], "q", lazy.window.kill()),
+    Key([mod], "q", lazy.window.kill(), desc="Close focused window"),
 # Qtile System Actions
-    Key([mod, "shift"], "r", lazy.restart()),
-    Key([mod, "shift"], "q", lazy.shutdown()),
+    Key([mod, "shift"], "r", lazy.function(notify_restart()), lazy.restart(), desc="Restart Qtile"),
+    Key([mod, "shift"], "q", lazy.shutdown(), desc="Exit Qtile"),
    #  Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 
 # CHANGE FOCUS USING VIM OR DIRECTIONAL KEYS
-    Key([mod], "Up", lazy.layout.up()),
-    Key([mod], "Down", lazy.layout.down()),
-    Key([mod], "Left", lazy.layout.left()),
-    Key([mod], "Right", lazy.layout.right()),
+    Key([mod], "Up", lazy.layout.up(), desc="Move focus up"),
+    Key([mod], "Down", lazy.layout.down(), desc="Move focus down"),
+    Key([mod], "Left", lazy.layout.left(), desc="Move focus left"),
+    Key([mod], "Right", lazy.layout.right(), desc="Move focus right"),
 
 
 # MOVE WINDOWS UP OR DOWN,LEFT OR RIGHT USING VIM KEYS
-    Key([mod, "shift"], "k", lazy.layout.shuffle_up()),
-    Key([mod, "shift"], "j", lazy.layout.shuffle_down()),
+    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
 
 # MOVE WINDOWS UP OR DOWN,LEFT OR RIGHT USING DIRECTIONAL KEYS
-    Key([mod, "shift"], "Left", lazy.layout.shuffle_up()),
-    Key([mod, "shift"], "Right", lazy.layout.shuffle_down()),
+    Key([mod, "shift"], "Left", lazy.layout.shuffle_up(), desc="Move window left"),
+    Key([mod, "shift"], "Right", lazy.layout.shuffle_down(), desc="Move window right"),
 
 # RESIZE UP, DOWN, LEFT, RIGHT USING DIRECTIONAL KEYS
     Key([mod, "control"], "Right",
@@ -52,20 +79,55 @@ keys = [
         lazy.layout.grow(),
         lazy.layout.increase_ratio(),
         lazy.layout.delete(),
+        desc="Grow window to the right"
         ),
      Key([mod, "control"], "Left",
         lazy.layout.grow_left(),
         lazy.layout.shrink(),
         lazy.layout.decrease_ratio(),
         lazy.layout.add(),
+        desc="Grow window to the left"
         ),
 
 # QTILE LAYOUT KEYS
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "Tab", lazy.next_layout(), lazy.function(notify_layout()), desc="Toggle between layouts"),
 
 # TOGGLE FLOATING LAYOUT
-    Key([mod, "shift"], "space", lazy.window.toggle_floating()),
+    Key([mod, "shift"], "space", lazy.window.toggle_floating(), desc="Toggle floating"),
 	Key([mod, "shift"], "z", lazy.layout.normalize(), desc="Reset all window sizes"),
+
+# APPLICATION LAUNCHERS
+    Key([mod], "b", lazy.spawn(browser), desc="Launch browser"),
+    Key([mod, "shift"], "b", lazy.spawn("firefox-esr -private-window"), desc="Launch Firefox (Private)"),
+    Key([mod], "Return", lazy.spawn("wezterm"), desc="Launch terminal"),
+    Key([mod, "shift"], "Return", lazy.spawn("wezterm"), desc="Launch terminal (alt)"),
+    Key([mod], "space", lazy.spawn("rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons"), desc="Launch Rofi"),
+    Key([mod], "h", lazy.spawn(f"python3 {os.path.expanduser('~/.config/qtile/scripts/help')}"), desc="Show keybindings"),
+    Key([mod], "f", lazy.spawn("thunar"), desc="Launch file manager"),
+    Key([mod], "e", lazy.spawn("geany"), desc="Launch text editor"),
+    Key([mod], "g", lazy.spawn("gimp"), desc="Launch GIMP"),
+    Key([mod], "v", lazy.spawn("wezterm -e pulsemixer"), desc="Launch volume mixer"),
+    Key([mod], "d", lazy.spawn("Discord"), desc="Launch Discord"),
+    Key([mod], "o", lazy.spawn("obs"), desc="Launch OBS"),
+
+# VOLUME CONTROLS
+    Key([mod], "Insert", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume up")), desc="Volume up"),
+    Key([mod], "Delete", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume down")), desc="Volume down"),
+    Key([mod], "m", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume mute")), desc="Mute/Unmute"),
+    Key([], "XF86AudioRaiseVolume", lazy.spawn("pamixer -i 2"), desc="Volume up"),
+    Key([], "XF86AudioLowerVolume", lazy.spawn("pamixer -d 2"), desc="Volume down"),
+
+# BRIGHTNESS CONTROLS
+    Key([], "XF86MonBrightnessUp", lazy.spawn("xbacklight +10"), desc="Brightness up"),
+    Key([], "XF86MonBrightnessDown", lazy.spawn("xbacklight -10"), desc="Brightness down"),
+
+# SCREENSHOTS
+    Key([mod], "Print", lazy.spawn("sh -c 'maim -s ~/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send \"Maim\" \"Selected image saved to ~/Screenshots\"'"), desc="Screenshot (selection)"),
+    Key([], "Print", lazy.spawn("sh -c 'maim ~/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send \"Maim\" \"Image saved to ~/Screenshots\"'"), desc="Screenshot (full screen)"),
+
+# REDSHIFT
+    Key([mod, "mod1"], "r", lazy.spawn("~/scripts/redshift-on"), desc="Redshift on"),
+    Key([mod, "mod1"], "b", lazy.spawn("~/scripts/redshift-off"), desc="Redshift off"),
 
     ]
 # end of keys
@@ -202,7 +264,7 @@ screens = [
 				separator,
 				spacer,
 				widget.CurrentLayoutIcon(
-                    custom_icon_paths=["/home/drew/.config/qtile/icons/layouts"],
+                    custom_icon_paths=[os.path.expanduser("~/.config/qtile/icons/layouts")],
                     scale=0.5,
                     padding=0
                 ),
