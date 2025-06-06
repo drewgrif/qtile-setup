@@ -225,7 +225,6 @@ keys = [
     Key([mod], "f", lazy.spawn("thunar"), desc="Launch file manager"),
     Key([mod], "e", lazy.spawn("geany"), desc="Launch text editor"),
     Key([mod], "g", lazy.spawn("gimp"), desc="Launch GIMP"),
-    Key([mod], "v", lazy.spawn("wezterm -e pulsemixer"), desc="Launch volume mixer"),
     Key([mod], "d", lazy.spawn("Discord"), desc="Launch Discord"),
     Key([mod], "o", lazy.spawn("obs"), desc="Launch OBS"),
     Key([mod], "x", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/power")), desc="Power menu"),
@@ -253,6 +252,7 @@ keys = [
 # Scratchpad keybindings
 keys.extend([
     Key([mod, "shift"], "Return", lazy.group['scratchpad'].dropdown_toggle('terminal')),
+    Key([mod], "v", lazy.group['scratchpad'].dropdown_toggle('volume'), desc="Toggle volume scratchpad"),
 ])
 
 # end of keys
@@ -277,6 +277,7 @@ groups = [
 # Define scratchpads
 groups.append(ScratchPad("scratchpad", [
     DropDown("terminal", "st", width=0.6, height=0.6, x=0.2, y=0.02, opacity=0.95),
+    DropDown("volume", "st -c volume -e pulsemixer", width=0.5, height=0.5, x=0.25, y=0.02, opacity=0.95),
 ]))
 
 
@@ -486,7 +487,7 @@ mouse = [
 
 dgroups_key_binder = None
 dgroups_app_rules = []  # type: list
-follow_mouse_focus = True
+follow_mouse_focus = False
 bring_front_click = False
 cursor_warp = False
 floating_layout = layout.Floating(
