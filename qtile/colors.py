@@ -225,12 +225,12 @@ def github_dark():
 			   ["#2f363d", "#2f363d"],  #background-alt [1]
 			   ["#d0d7de", "#d0d7de"],  #foreground [2]
 			   ["#539bf5", "#539bf5"],  #secondary/blue [3]
-			   ["#58a6ff", "#58a6ff"],  #caret/light blue [4]
+			   ["#39c5cf", "#39c5cf"],  #cyan [4]
 			   ["#4e5b55", "#4e5b55"],  #disabled [5]
 			   ["#d29922", "#d29922"],  #primary/yellow [6]
 			   ["#bc8cff", "#bc8cff"],  #magenta [7]
 			   ["#0f2923", "#0f2923"],  #border [8]
-			   ['#ff0000', '#ff0000'],  #red [9]
+			   ['#ff7b72', '#ff7b72'],  #red [9]
 			   ["#D29922", "#D29922"]]  #alert/yellow [10]
 			   
 	backgroundColor = "#0d1117"
