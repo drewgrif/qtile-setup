@@ -339,31 +339,6 @@ def create_separator():
 # Custom widget for keyboard lock indicator
 # Using built-in CapsNumLockIndicator widget instead of custom implementation
 
-def create_volume_widget():
-    """Create a volume widget that works across different audio systems"""
-    # Check if pamixer works
-    try:
-        subprocess.run(['pamixer', '--get-volume'], capture_output=True, check=True)
-        # If pamixer works, use it with the Volume widget
-        return widget.Volume(
-            fmt="{}",
-            volume_app="pamixer",
-            volume_up_command="pamixer -i 2",
-            volume_down_command="pamixer -d 2",
-            mute_command="pamixer -t",
-            get_volume_command="pamixer --get-volume",
-            update_interval=0.5,
-            foreground=foregroundColor,
-            padding=2
-        )
-    except:
-        # Fallback to default Volume widget (auto-detects ALSA/Pulse)
-        return widget.Volume(
-            fmt="{}",
-            update_interval=0.5,
-            foreground=foregroundColor,
-            padding=2
-        )
 
 screens = [
     Screen(
@@ -459,14 +434,14 @@ screens = [
                 ),
                 widget.Volume(
                     fmt="{}",
-                    update_interval=0.5,
+                    mute_command="pamixer -t",
+                    volume_up_command="pamixer -i 2",
+                    volume_down_command="pamixer -d 2",
+                    get_volume_command="pamixer --get-volume-human",
+                    check_mute_command="pamixer --get-mute",
+                    check_mute_string="true",
                     foreground=foregroundColor,
-                    padding=2,
-                    mouse_callbacks={
-                        'Button3': lazy.spawn("pavucontrol"),
-                        'Button4': lazy.spawn("pamixer -i 2"),
-                        'Button5': lazy.spawn("pamixer -d 2"),
-                    },
+                    padding=2
                 ),
                 create_separator(),
                 widget.Clock(
