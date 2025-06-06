@@ -259,6 +259,8 @@ install_core_packages() {
         gir1.2-gtk-3.0 \
         libdbus-1-dev \
         libdbus-glib-1-dev \
+        libnotify-bin \
+        libnotify-dev \
         python3-dbus \
         pipx \
         || { echo "ERROR: Core package installation failed."; return 1; }
@@ -340,8 +342,6 @@ install_font_packages() {
         fonts-font-awesome \
         fonts-terminus \
         fonts-dejavu \
-        fonts-liberation \
-        fonts-noto \
         || { echo "ERROR: Font package installation failed."; return 1; }
 }
 
