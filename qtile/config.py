@@ -454,9 +454,20 @@ screens = [
                 widget.TextBox(
                     text="󰕾",
                     foreground=colors[6][0],
-                    padding=6
+                    padding=6,
+                    mouse_callbacks={'Button1': lazy.spawn("pavucontrol")},
                 ),
-                create_volume_widget(),
+                widget.Volume(
+                    fmt="{}",
+                    update_interval=0.5,
+                    foreground=foregroundColor,
+                    padding=2,
+                    mouse_callbacks={
+                        'Button3': lazy.spawn("pavucontrol"),
+                        'Button4': lazy.spawn("pamixer -i 2"),
+                        'Button5': lazy.spawn("pamixer -d 2"),
+                    },
+                ),
                 create_separator(),
                 widget.Clock(
                     format='%a, %b %-d',
