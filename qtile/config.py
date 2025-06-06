@@ -235,16 +235,18 @@ keys = [
     Key([mod], "Insert", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume up")), desc="Volume up"),
     Key([mod], "Delete", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume down")), desc="Volume down"),
     Key([mod], "m", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume mute")), desc="Mute/Unmute"),
-    Key([], "XF86AudioRaiseVolume", lazy.spawn("pamixer -i 2"), desc="Volume up"),
-    Key([], "XF86AudioLowerVolume", lazy.spawn("pamixer -d 2"), desc="Volume down"),
+    Key([], "XF86AudioRaiseVolume", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume up")), desc="Volume up"),
+    Key([], "XF86AudioLowerVolume", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume down")), desc="Volume down"),
+    Key([], "XF86AudioMute", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume mute")), desc="Mute/Unmute"),
 
 # BRIGHTNESS CONTROLS
     Key([], "XF86MonBrightnessUp", lazy.spawn("xbacklight +10"), desc="Brightness up"),
     Key([], "XF86MonBrightnessDown", lazy.spawn("xbacklight -10"), desc="Brightness down"),
 
 # SCREENSHOTS
-    Key([mod], "Print", lazy.spawn("flameshot gui --path ~/Screenshots/"), desc="Screenshot (region select)"),
-    Key([], "Print", lazy.spawn("flameshot full --path ~/Screenshots/"), desc="Screenshot (full screen)"),
+    Key([mod], "Print", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select)"),
+    Key([], "Print", lazy.spawn("flameshot full --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (full screen)"),
+    Key([mod, "shift"], "s", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select alt)"),
 
 
     ]
@@ -449,7 +451,10 @@ screens = [
                 ),
                 widget.Volume(
                     fmt="{}",
-                    mute_command="amixer -D pulse set Master toggle",
+                    mute_command="pamixer -t",
+                    volume_app="pamixer",
+                    get_volume_command="pamixer --get-volume",
+                    update_interval=0.1,
                     foreground=foregroundColor,
                     padding=2
                 ),
