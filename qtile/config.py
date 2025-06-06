@@ -254,7 +254,7 @@ keys = [
 # groups = [Group(i) for i in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]
 groups = [
 	Group('1', label="1", layout="bsp"),
-	Group('2', label="2", layout="bsp"),
+	Group('2', label="2", matches=[Match(wm_class='GitHub Desktop')], layout="bsp"),
 	Group('3', label="3", layout="bsp"),	
 	Group('4', label="4", layout="bsp"),
 	Group('5', label="5", layout="bsp"),
