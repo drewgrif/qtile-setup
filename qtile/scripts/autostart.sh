@@ -4,7 +4,7 @@
 /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
 
 # background
-feh --bg-fill ~/.config/qtile/wallpaper/wallhaven-yqjvw7_3440x1440.png &
+feh --bg-fill ~/.config/qtile/wallpaper/wallhaven-rq7jw1_3440x1440.png &
 
 # compositor
 picom --config ~/.config/qtile/picom/picom.conf --animations -b &
