@@ -451,10 +451,7 @@ screens = [
                 ),
                 widget.Volume(
                     fmt="{}",
-                    mute_command="pamixer -t",
-                    volume_app="pamixer",
-                    get_volume_command="pamixer --get-volume",
-                    update_interval=0.1,
+                    update_interval=0.5,
                     foreground=foregroundColor,
                     padding=2
                 ),
