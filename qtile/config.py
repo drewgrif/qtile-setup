@@ -1,7 +1,7 @@
 # Copyright (c) 2025 JustAGuyLinux
 
 from libqtile import bar, layout, widget
-from libqtile.config import Click, Drag, Group, Key, Match, Screen
+from libqtile.config import Click, Drag, Group, Key, Match, Screen, ScratchPad, DropDown
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 import os
@@ -213,14 +213,13 @@ keys = [
     Key([mod, "shift"], "space", 
         lazy.function(toggle_float_center()),
         desc="Toggle floating and center at 75%"),
-	Key([mod, "shift"], "z", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod, "shift"], "z", lazy.layout.normalize(), desc="Reset all window sizes"),
     Key([mod], "t", lazy.layout.toggle_split(), desc="Toggle split direction in BSP"),
 
 # APPLICATION LAUNCHERS
     Key([mod], "b", lazy.spawn(browser), desc="Launch browser"),
     Key([mod, "shift"], "b", lazy.spawn("firefox-esr -private-window"), desc="Launch Firefox (Private)"),
     Key([mod], "Return", lazy.spawn("wezterm"), desc="Launch terminal"),
-    Key([mod, "shift"], "Return", lazy.spawn("wezterm"), desc="Launch terminal (alt)"),
     Key([mod], "space", lazy.spawn("rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons -theme ~/.config/qtile/rofi/config.rasi"), desc="Launch Rofi"),
     Key([mod], "h", lazy.spawn(f"python3 {os.path.expanduser('~/.config/qtile/scripts/help')}"), desc="Show keybindings"),
     Key([mod], "f", lazy.spawn("thunar"), desc="Launch file manager"),
@@ -250,6 +249,12 @@ keys = [
 
 
     ]
+
+# Scratchpad keybindings
+keys.extend([
+    Key([mod, "shift"], "Return", lazy.group['scratchpad'].dropdown_toggle('terminal')),
+])
+
 # end of keys
 
 #groups = [Group(i) for i in ["", "", "", "", "阮", "", "", "", ""]]
@@ -269,33 +274,40 @@ groups = [
 	Group('equal', label="12", layout="bsp"),
 ]
 
+# Define scratchpads
+groups.append(ScratchPad("scratchpad", [
+    DropDown("terminal", "st", width=0.6, height=0.6, x=0.2, y=0.02, opacity=0.95),
+]))
+
+
 
 #groups = [Group(i) for i in ["www", "dev", "dir", "txt", "vid", "mus", "gfx", "dis", "obs"]]
 # group_hotkeys = "123456789"
 
 for i in groups:
-    keys.extend(
-        [
-            # mod1 + letter of group = switch to group
-            Key(
-                [mod],
-                i.name,
-                lazy.group[i.name].toscreen(),
-                desc="Switch to group {}".format(i.name),
-            ),
-            # mod1 + shift + letter of group = switch to & move focused window to group
-            Key(
-                [mod, "shift"],
-                i.name,
-                lazy.window.togroup(i.name, switch_group=True),
-                desc="Switch to & move focused window to group {}".format(i.name),
-            ),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod1 + shift + letter of group = move focused window to group
-            # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
-            #     desc="move focused window to group {}".format(i.name)),
-        ]
-    )
+    if i.name != "scratchpad":  # Skip scratchpad groups
+        keys.extend(
+            [
+                # mod1 + letter of group = switch to group
+                Key(
+                    [mod],
+                    i.name,
+                    lazy.group[i.name].toscreen(),
+                    desc="Switch to group {}".format(i.name),
+                ),
+                # mod1 + shift + letter of group = switch to & move focused window to group
+                Key(
+                    [mod, "shift"],
+                    i.name,
+                    lazy.window.togroup(i.name, switch_group=True),
+                    desc="Switch to & move focused window to group {}".format(i.name),
+                ),
+                # Or, use below if you prefer not to switch to that group.
+                # # mod1 + shift + letter of group = move focused window to group
+                # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
+                #     desc="move focused window to group {}".format(i.name)),
+            ]
+        )
 
 # Define layouts and layout themes
 layout_theme = {
