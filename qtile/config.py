@@ -8,7 +8,7 @@ import os
 import subprocess
 
 from libqtile import hook
-from colors import github_dark
+from colors import *
 
 def notify_layout():
     """Show current layout in notification"""
@@ -24,7 +24,12 @@ def notify_layout():
             "floating": "Floating",
             "spiral": "Spiral",
             "ratiotile": "Ratio Tile",
-            "max": "Maximized"
+            "max": "Maximized",
+            "monadwide": "Monad Wide",
+            "tile": "Tile",
+            "verticaltile": "Vertical Tile",
+            "stack": "Stack",
+            "zoomy": "Zoomy"
         }
         display_name = layout_map.get(layout_name, layout_name.title())
         subprocess.run(["notify-send", "Layout", display_name, "-t", "1500", "-u", "low"])
@@ -36,10 +41,92 @@ def notify_restart():
         subprocess.run(["notify-send", "Qtile", "Restarting...", "-t", "2000", "-u", "normal"])
     return _notify_restart
 
+def toggle_float_center():
+    """Toggle floating and center at 75% size"""
+    def _toggle_float_center(qtile):
+        window = qtile.current_window
+        if window:
+            was_floating = window.floating
+            window.toggle_floating()
+            if not was_floating and window.floating:
+                # Only resize/center when going from tiled to floating
+                screen = qtile.current_screen
+                width = int(screen.width * 0.70)
+                height = int(screen.height * 0.60)
+                window.set_size_floating(width, height)
+                window.center()
+    return _toggle_float_center
+
+def resize_left():
+    """Resize window left - intuitive based on focus"""
+    def _resize_left(qtile):
+        layout = qtile.current_layout.name
+        group = qtile.current_group
+        
+        # For BSP/Columns layouts with directional resize
+        if layout in ["bsp", "columns"]:
+            qtile.current_layout.cmd_grow_left()
+        # For MonadTall/Tile - check if we're in main or stack area
+        elif layout in ["monadtall", "monadwide", "tile", "ratiotile"]:
+            # Get current window index
+            current_idx = group.windows.index(qtile.current_window)
+            # First window is usually main, so reverse the behavior
+            if current_idx == 0:
+                qtile.current_layout.cmd_shrink()
+            else:
+                qtile.current_layout.cmd_grow()
+        else:
+            # Default behavior for other layouts
+            qtile.current_layout.cmd_shrink()
+    return _resize_left
+
+def resize_right():
+    """Resize window right - intuitive based on focus"""
+    def _resize_right(qtile):
+        layout = qtile.current_layout.name
+        group = qtile.current_group
+        
+        # For BSP/Columns layouts with directional resize
+        if layout in ["bsp", "columns"]:
+            qtile.current_layout.cmd_grow_right()
+        # For MonadTall/Tile - check if we're in main or stack area
+        elif layout in ["monadtall", "monadwide", "tile", "ratiotile"]:
+            # Get current window index
+            current_idx = group.windows.index(qtile.current_window)
+            # First window is usually main, so reverse the behavior
+            if current_idx == 0:
+                qtile.current_layout.cmd_grow()
+            else:
+                qtile.current_layout.cmd_shrink()
+        else:
+            # Default behavior for other layouts
+            qtile.current_layout.cmd_grow()
+    return _resize_right
+
+def focus_left():
+    """Focus window to the left, or cycle if floating"""
+    def _focus_left(qtile):
+        if qtile.current_layout.name == "floating" or qtile.current_window.floating:
+            qtile.current_group.cmd_prev_window()
+        else:
+            qtile.current_layout.cmd_left()
+    return _focus_left
+
+def focus_right():
+    """Focus window to the right, or cycle if floating"""
+    def _focus_right(qtile):
+        if qtile.current_layout.name == "floating" or qtile.current_window.floating:
+            qtile.current_group.cmd_next_window()
+        else:
+            qtile.current_layout.cmd_right()
+    return _focus_right
+
 @hook.subscribe.startup_once
 def autostart():
    home = os.path.expanduser('~/.config/qtile/scripts/autostart.sh')
    subprocess.run([home])
+
+
 
 mod = "mod4"
 terminal = "wezterm"
@@ -61,47 +148,80 @@ keys = [
 # CHANGE FOCUS USING VIM OR DIRECTIONAL KEYS
     Key([mod], "Up", lazy.layout.up(), desc="Move focus up"),
     Key([mod], "Down", lazy.layout.down(), desc="Move focus down"),
-    Key([mod], "Left", lazy.layout.left(), desc="Move focus left"),
-    Key([mod], "Right", lazy.layout.right(), desc="Move focus right"),
+    Key([mod], "Left", lazy.function(focus_left()), desc="Move focus left"),
+    Key([mod], "Right", lazy.function(focus_right()), desc="Move focus right"),
+    
+    # CYCLE THROUGH ALL WINDOWS (INCLUDING FLOATING)
+    Key([mod], "j", lazy.group.next_window(), desc="Focus next window"),
+    Key([mod], "k", lazy.group.prev_window(), desc="Focus previous window"),
+    Key(["mod1"], "Tab", lazy.group.next_window(), desc="Alt-Tab window switching"),
+    Key(["mod1", "shift"], "Tab", lazy.group.prev_window(), desc="Alt-Shift-Tab window switching"),
 
 
 # MOVE WINDOWS UP OR DOWN,LEFT OR RIGHT USING VIM KEYS
-    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
-    Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
+    Key([mod, "shift"], "k", 
+        lazy.layout.shuffle_up(),
+        lazy.layout.shuffle_left(),
+        desc="Move window up/left"),
+    Key([mod, "shift"], "j", 
+        lazy.layout.shuffle_down(),
+        lazy.layout.shuffle_right(),
+        desc="Move window down/right"),
 
 # MOVE WINDOWS UP OR DOWN,LEFT OR RIGHT USING DIRECTIONAL KEYS
-    Key([mod, "shift"], "Left", lazy.layout.shuffle_up(), desc="Move window left"),
-    Key([mod, "shift"], "Right", lazy.layout.shuffle_down(), desc="Move window right"),
+    Key([mod, "shift"], "Left", 
+        lazy.layout.shuffle_left(),
+        lazy.layout.swap_left(),
+        desc="Move window left"),
+    Key([mod, "shift"], "Right", 
+        lazy.layout.shuffle_right(),
+        lazy.layout.swap_right(),
+        desc="Move window right"),
+    Key([mod, "shift"], "Up", 
+        lazy.layout.shuffle_up(),
+        desc="Move window up"),
+    Key([mod, "shift"], "Down", 
+        lazy.layout.shuffle_down(),
+        desc="Move window down"),
 
 # RESIZE UP, DOWN, LEFT, RIGHT USING DIRECTIONAL KEYS
     Key([mod, "control"], "Right",
-        lazy.layout.grow_right(),
-        lazy.layout.grow(),
-        lazy.layout.increase_ratio(),
-        lazy.layout.delete(),
-        desc="Grow window to the right"
+        lazy.function(resize_right()),
+        desc="Resize window right"
         ),
-     Key([mod, "control"], "Left",
-        lazy.layout.grow_left(),
+    Key([mod, "control"], "Left",
+        lazy.function(resize_left()),
+        desc="Resize window left"
+        ),
+    Key([mod, "control"], "Up",
+        lazy.layout.grow_up(),
+        lazy.layout.grow(),
+        lazy.layout.decrease_nmaster(),
+        desc="Grow window up"
+        ),
+    Key([mod, "control"], "Down",
+        lazy.layout.grow_down(),
         lazy.layout.shrink(),
-        lazy.layout.decrease_ratio(),
-        lazy.layout.add(),
-        desc="Grow window to the left"
+        lazy.layout.increase_nmaster(),
+        desc="Grow window down"
         ),
 
 # QTILE LAYOUT KEYS
     Key([mod], "Tab", lazy.next_layout(), lazy.function(notify_layout()), desc="Toggle between layouts"),
 
 # TOGGLE FLOATING LAYOUT
-    Key([mod, "shift"], "space", lazy.window.toggle_floating(), desc="Toggle floating"),
+    Key([mod, "shift"], "space", 
+        lazy.function(toggle_float_center()),
+        desc="Toggle floating and center at 75%"),
 	Key([mod, "shift"], "z", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod], "t", lazy.layout.toggle_split(), desc="Toggle split direction in BSP"),
 
 # APPLICATION LAUNCHERS
     Key([mod], "b", lazy.spawn(browser), desc="Launch browser"),
     Key([mod, "shift"], "b", lazy.spawn("firefox-esr -private-window"), desc="Launch Firefox (Private)"),
     Key([mod], "Return", lazy.spawn("wezterm"), desc="Launch terminal"),
     Key([mod, "shift"], "Return", lazy.spawn("wezterm"), desc="Launch terminal (alt)"),
-    Key([mod], "space", lazy.spawn("rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons"), desc="Launch Rofi"),
+    Key([mod], "space", lazy.spawn("rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons -theme ~/.config/qtile/rofi/config.rasi"), desc="Launch Rofi"),
     Key([mod], "h", lazy.spawn(f"python3 {os.path.expanduser('~/.config/qtile/scripts/help')}"), desc="Show keybindings"),
     Key([mod], "f", lazy.spawn("thunar"), desc="Launch file manager"),
     Key([mod], "e", lazy.spawn("geany"), desc="Launch text editor"),
@@ -109,6 +229,7 @@ keys = [
     Key([mod], "v", lazy.spawn("wezterm -e pulsemixer"), desc="Launch volume mixer"),
     Key([mod], "d", lazy.spawn("Discord"), desc="Launch Discord"),
     Key([mod], "o", lazy.spawn("obs"), desc="Launch OBS"),
+    Key([mod], "x", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/power")), desc="Power menu"),
 
 # VOLUME CONTROLS
     Key([mod], "Insert", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/changevolume up")), desc="Volume up"),
@@ -122,28 +243,28 @@ keys = [
     Key([], "XF86MonBrightnessDown", lazy.spawn("xbacklight -10"), desc="Brightness down"),
 
 # SCREENSHOTS
-    Key([mod], "Print", lazy.spawn("sh -c 'maim -s ~/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send \"Maim\" \"Selected image saved to ~/Screenshots\"'"), desc="Screenshot (selection)"),
-    Key([], "Print", lazy.spawn("sh -c 'maim ~/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send \"Maim\" \"Image saved to ~/Screenshots\"'"), desc="Screenshot (full screen)"),
+    Key([mod], "Print", lazy.spawn("flameshot gui --path ~/Screenshots/"), desc="Screenshot (region select)"),
+    Key([], "Print", lazy.spawn("flameshot full --path ~/Screenshots/"), desc="Screenshot (full screen)"),
 
-# REDSHIFT
-    Key([mod, "mod1"], "r", lazy.spawn("~/scripts/redshift-on"), desc="Redshift on"),
-    Key([mod, "mod1"], "b", lazy.spawn("~/scripts/redshift-off"), desc="Redshift off"),
 
     ]
 # end of keys
 
-#groups = [Group(i) for i in ["", "", "", "", "阮", "", "", "", ""]]
+#groups = [Group(i) for i in ["", "", "", "", "阮", "", "", "", ""]]
 # groups = [Group(i) for i in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]
 groups = [
-	Group('1', label="1", layout="Columns"),
-	Group('2', label="2", layout="Columns"),
-	Group('3', label="3", layout="Columns"),	
-	Group('4', label="4", layout="Columns"),
-	Group('5', label="5", layout="MonadTall"),
-	Group('6', label="6", layout="MonadTall"),
-	Group('7', label="7", matches=[Match(wm_class='gimp')], layout="MonadTall"),
-	Group('8', label="8", matches=[Match(wm_class='discord')], layout="MonadTall"),
-	Group('9', label="9", matches=[Match(wm_class='obs')],layout="MonadTall"),
+	Group('1', label="1", layout="bsp"),
+	Group('2', label="2", layout="bsp"),
+	Group('3', label="3", layout="bsp"),	
+	Group('4', label="4", layout="bsp"),
+	Group('5', label="5", layout="bsp"),
+	Group('6', label="6", layout="bsp"),
+	Group('7', label="7", matches=[Match(wm_class='gimp')], layout="max"),
+	Group('8', label="8", matches=[Match(wm_class='discord')], layout="max"),
+	Group('9', label="9", matches=[Match(wm_class='obs')], layout="columns"),
+	Group('0', label="10", layout="bsp"),
+	Group('minus', label="11", layout="bsp"),
+	Group('equal', label="12", layout="bsp"),
 ]
 
 
@@ -176,106 +297,180 @@ for i in groups:
 
 # Define layouts and layout themes
 layout_theme = {
-        "margin":20,
+        "margin":10,
         "border_width": 4,
         "border_focus": colors[3],
         "border_normal": colors[1]
     }
 
+# Layout preference by monitor type:
+# BSP - Traditional monitors (16:9, 4:3)
+# Columns - Ultrawide monitors (21:9, 32:9)
 layouts = [
-    layout.MonadTall(**layout_theme),
-    layout.Columns(**layout_theme,num_columns=3),
     layout.Bsp(**layout_theme),
+    layout.Columns(**layout_theme, num_columns=3),
+    layout.MonadTall(**layout_theme),
+    layout.Max(**layout_theme),
     layout.Floating(**layout_theme),
-    layout.Spiral(**layout_theme),
-    layout.RatioTile(**layout_theme),
-    layout.Max(**layout_theme)
+    layout.Zoomy(**layout_theme),
 ]
+
+# Updated widget defaults to match Polybar styling
 widget_defaults = dict(
-	font='Roboto Mono Nerd Font',
-    background=colors[0],
-    foreground=colors[2],
-    fontsize=14,
-    padding=6,
+    font='Roboto Mono Nerd Font',  # Match Polybar font
+    background=backgroundColor,
+    foreground=foregroundColor,
+    fontsize=16,  # Increased font size
+    padding=4,
 )
 extension_defaults = widget_defaults.copy()
-separator = widget.Sep(size_percent=50, foreground=colors[3], linewidth =1, padding =10)
-spacer = widget.Sep(size_percent=50, foreground=colors[3], linewidth =0, padding =10)
+
+# Custom separator to match Polybar
+def create_separator():
+    return widget.TextBox(
+        text="|",
+        foreground=foregroundColorTwo,  # disabled color
+        padding=8,
+        fontsize=14
+    )
+
+# Custom widget for keyboard lock indicator
+class CapsLockIndicator(widget.base._TextBox):
+    def __init__(self, **config):
+        super().__init__("", **config)
+        self.add_callbacks({
+            "Button1": lambda: None,
+        })
+    
+    def timer_setup(self):
+        self.timeout_add(1, self.check_caps_lock)
+    
+    def check_caps_lock(self):
+        try:
+            result = subprocess.run(['xset', 'q'], capture_output=True, text=True)
+            if 'Caps Lock:   on' in result.stdout:
+                self.text = "  Caps  "
+                self.background = colors[10][0]  # alert/yellow
+                self.foreground = backgroundColor
+            else:
+                self.text = ""
+                self.background = backgroundColor
+        except:
+            pass
+        self.timeout_add(1, self.check_caps_lock)
 
 screens = [
     Screen(
         top=bar.Bar(
             [
+                # Layout indicator
+                widget.Spacer(length=8),
+                widget.CurrentLayoutIcon(
+                    custom_icon_paths=[os.path.expanduser("~/.config/qtile/icons/layouts")],
+                    foreground=colors[6][0],
+                    scale=0.6,
+                    padding=4
+                ),
+                create_separator(),
+                
+                # Left modules - System info
+                widget.TextBox(
+                    text="󰍛",
+                    foreground=colors[6][0],
+                    padding=2
+                ),
+                widget.Memory(
+                    format='{MemPercent:2.0f}%',
+                    foreground=foregroundColor,
+                    padding=2
+                ),
+                create_separator(),
+                widget.TextBox(
+                    text="󰻠",
+                    foreground=colors[6][0],
+                    padding=2
+                ),
+                widget.CPU(
+                    format="{load_percent:2.0f}%",
+                    foreground=foregroundColor,
+                    padding=2
+                ),
+                create_separator(),
+                widget.TextBox(
+                    text="󰋊",
+                    foreground=colors[6][0],
+                    padding=6
+                ),
+                widget.DF(
+                    visible_on_warn=False,
+                    format='{r:.0f}%',
+                    partition='/',
+                    foreground=foregroundColor,
+                    padding=2
+                ),
+                
+                # Center - Workspaces
+                widget.Spacer(),
                 widget.GroupBox(
                     disable_drag=True,
                     use_mouse_wheel=False,
-                    active = colors[4],
-                    inactive = colors[5],
+                    active=foregroundColor,
+                    inactive=foregroundColorTwo,
                     highlight_method='line',
-                    this_current_screen_border=colors[10],
-                    hide_unused = False,
-                    rounded = False,
-                    urgent_alert_method='line',
-                    urgent_text=colors[9]
+                    highlight_color=[backgroundColor, backgroundColor],
+                    this_current_screen_border=colors[6][0],
+                    this_screen_border=colors[1][0],
+                    other_current_screen_border=colors[1][0],
+                    other_screen_border=backgroundColor,
+                    urgent_alert_method='text',
+                    urgent_text=colors[10][0],
+                    rounded=False,
+                    margin_x=0,
+                    margin_y=2,
+                    padding_x=8,
+                    padding_y=4,
+                    borderwidth=3,
+                    hide_unused=True,
                 ),
-        widget.TaskList(
-            icon_size = 0,
-            foreground = colors[0],
-            background = colors[2],
-            borderwidth = 0,
-            border = colors[6],
-            margin_y = -5,
-            padding = 8,
-            highlight_method = "block",
-            title_width_method = "uniform",
-            urgent_alert_method = "border",
-            urgent_border = colors[1],
-            rounded = False,
-            txt_floating = "🗗 ",
-            txt_maximized = "🗖 ",
-            txt_minimized = "🗕 ",
-        ),
-
-               widget.TextBox(text = "", foreground = colors[1]),
-               widget.CPU(
-					format="{load_percent:04}%",
-					foreground=foregroundColor
-			   ),
-			   separator,
-			   widget.TextBox(text = "󰻠", foreground = colors[1]),
-               widget.Memory(
-                format='{MemUsed: .0f}{mm}/{MemTotal: .0f}{mm}',
-                measure_mem='G',
-                foreground=foregroundColor
-               ),
-               separator,
-                widget.Clock(format=' %a, %b %-d',
-					foreground=foregroundColor
-				),
-				widget.Clock(format='%-I:%M %p',
-					foreground=foregroundColor
-				),
-				separator,
-               widget.Volume(
-					fmt="󰕾 {}",
-					mute_command="amixer -D pulse set Master toggle",
-					foreground=colors[4]
-            ),
-				separator,
-				spacer,
-				widget.CurrentLayoutIcon(
-                    custom_icon_paths=[os.path.expanduser("~/.config/qtile/icons/layouts")],
-                    scale=0.5,
-                    padding=0
+                widget.Spacer(),
+                
+                # Right modules
+                CapsLockIndicator(
+                    padding=4,
                 ),
                 widget.Systray(
-					padding = 6,
-				),
-				spacer,
+                    padding=4,
+                ),
+                create_separator(),
+                widget.TextBox(
+                    text="󰕾",
+                    foreground=colors[6][0],
+                    padding=6
+                ),
+                widget.Volume(
+                    fmt="{}",
+                    mute_command="amixer -D pulse set Master toggle",
+                    foreground=foregroundColor,
+                    padding=2
+                ),
+                create_separator(),
+                widget.Clock(
+                    format='%a, %b %-d',
+                    foreground=foregroundColorTwo,
+                    padding=4
+                ),
+                create_separator(),
+                widget.Clock(
+                    format='%-l:%M %p',
+                    foreground=foregroundColor,
+                    padding=4
+                ),
+                widget.Spacer(length=8),
             ],
-            24,
-            # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
-            # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
+            24,  # Match Polybar's 24pt height
+            background=backgroundColor,
+            margin=[0, 0, 0, 0],  # Remove margins for full-width bar
+            # border_width=[0, 0, 0, 0],  # No borders to match Polybar
         ),
     ),
 ]
@@ -302,7 +497,6 @@ border_normal=colors[1],
         Match(wm_class="qimgv"),  # q image viewer
         Match(wm_class="lxappearance"),  # lxappearance
         Match(wm_class="pavucontrol"),  # pavucontrol
-        Match(wm_class="kitty"),  # kitty
         Match(wm_class="Galculator"),  # calculator
         Match(wm_class="confirmreset"),  # gitk
         Match(wm_class="makebranch"),  # gitk

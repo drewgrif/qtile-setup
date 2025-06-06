@@ -1,102 +1,101 @@
 #Dracula
 def dracula():
-	colors = [["#282a36", "#282a36"],  #background (dark grey) [0]
-			   ["#44475a", "#44475a"],  #light grey [1]
-			   ["#f8f8f2", "#f8f8f2"],  #foreground (white) [2]
-			   ["#6272a4", "#6272a4"],  #blue/grey) [3]
+	colors = [["#282a36", "#282a36"],  #background (dark) [0]
+			   ["#44475a", "#44475a"],  #background-alt [1]
+			   ["#f8f8f2", "#f8f8f2"],  #foreground [2]
+			   ["#6272a4", "#6272a4"],  #secondary/blue [3]
 			   ["#8be9fd", "#8be9fd"],  #cyan [4]
-			   ["#50fa7b", "#50fa7b"],  #green [5]
-			   ["#ffb86c", "#ffb86c"],  #orange [6]
+			   ["#44475a", "#44475a"],  #disabled [5]
+			   ["#f1fa8c", "#f1fa8c"],  #primary/yellow [6]
 			   ["#ff79c6", "#ff79c6"],  #pink [7]
-			   ["#bd93f9", "#bd93f9"],  #purple [8]
+			   ["#44475a", "#44475a"],  #border [8]
 			   ['#ff5555', '#ff5555'],  #red [9]
-			   ["#f1fa8c", "#f1fa8c"]]  #yellow [10]
+			   ["#ffb86c", "#ffb86c"]]  #alert/orange [10]
 			   
 	backgroundColor = "#282a36"
 	foregroundColor = "#f8f8f2"
-	workspaceColor = "#bd93f9"
+	workspaceColor = "#f1fa8c"
 	foregroundColorTwo = "#44475a"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Everforest
 def everforest():
-	colors = [["#2B3339", "#2B3339"],  #background (dark grey) [0]
-			  ["#7C8377", "#7C8377"],  #light grey [1]
-			  ["#D5C9AB", "#D5C9AB"],  #foreground (beige) [2]
-			  ["#6272a4", "#6272a4"],  #blue/grey) [3]
-			  ["#7FBBB3", "#7FBBB3"],  #blue [4]
-			  ["#A7C080", "#A7C080"],  #green [5]
-			  ["#E69875", "#E69875"],  #orange [6]
+	colors = [["#2B3339", "#2B3339"],  #background (dark) [0]
+			  ["#414b50", "#414b50"],  #background-alt [1]
+			  ["#D5C9AB", "#D5C9AB"],  #foreground [2]
+			  ["#7FBBB3", "#7FBBB3"],  #secondary/blue [3]
+			  ["#83c092", "#83c092"],  #green [4]
+			  ["#7C8377", "#7C8377"],  #disabled [5]
+			  ["#DBBC7F", "#DBBC7F"],  #primary/yellow [6]
 			  ["#D196B3", "#D196B3"],  #pink [7]
-			  ["#A7C080", "#A7C080"],  #green [8]
+			  ["#414b50", "#414b50"],  #border [8]
 			  ['#ED8082', '#ED8080'],  #red [9]
-			  ["#D5C9AB", "#D5C9AB"]]  #beige [10]
+			  ["#E69875", "#E69875"]]  #alert/orange [10]
 			  
 	backgroundColor = "#2B3339"
 	foregroundColor = "#D5C9AB"
-	workspaceColor = "#A7C080"
+	workspaceColor = "#DBBC7F"
 	foregroundColorTwo = "#7c8377"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Doom-One
 def doomone():
-	colors = [["#282c34", "#282c34"],  #background (dark grey) [0]
-			   ["#44475a", "#44475a"],  #light grey [1]
-			   ["#bbc2cf", "#bbc2cf"],  #foreground (white) [2]
-			   ["#3071db", "#3071db"],  #dark blue) [3]
-			   ["#51afef", "#51afef"],  #blue [4]
-			   ["#98be65", "#98be65"],  #green [5]
-			   ["#da8548", "#da8548"],  #orange [6]
-			   ["#a9a1e1", "#a9a1e1"],  #pink [7]
-			   ["#c678dd", "#c678dd"],  #purple [8]
+	colors = [["#282c34", "#282c34"],  #background (dark) [0]
+			   ["#3f444a", "#3f444a"],  #background-alt [1]
+			   ["#bbc2cf", "#bbc2cf"],  #foreground [2]
+			   ["#51afef", "#51afef"],  #secondary/blue [3]
+			   ["#c678dd", "#c678dd"],  #purple [4]
+			   ["#5b6268", "#5b6268"],  #disabled [5]
+			   ["#ecbe7b", "#ecbe7b"],  #primary/yellow [6]
+			   ["#a9a1e1", "#a9a1e1"],  #violet [7]
+			   ["#3f444a", "#3f444a"],  #border [8]
 			   ['#ff6c6b', '#ff6c6b'],  #red [9]
-			   ["#ecbe7b", "#ecbe7b"]]  #yellow [10]
+			   ["#da8548", "#da8548"]]  #alert/orange [10]
 			   
-	backgroundColor = "#282a36"
+	backgroundColor = "#282c34"
 	foregroundColor = "#bbc2cf"
-	workspaceColor = "#51afef"
-	foregroundColorTwo = "#44475a"
+	workspaceColor = "#ecbe7b"
+	foregroundColorTwo = "#5b6268"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Nord
 def nord():
-	colors = [["#2e3440", "#2e3440"],  #background (dark grey) [0]
-			  ["#4c556a", "#4c566a"],  #grey [1]
-			  ["#d8dee9", "#d8dee9"],  #foreground (beige) [2]
-			  ["#81a1c1", "#81a1c1"],  #blue/grey) [3]
+	colors = [["#2e3440", "#2e3440"],  #background (dark) [0]
+			  ["#3b4252", "#3b4252"],  #background-alt [1]
+			  ["#d8dee9", "#d8dee9"],  #foreground [2]
+			  ["#81a1c1", "#81a1c1"],  #secondary/blue [3]
 			  ["#88c0d0", "#88c0d0"],  #blue [4]
-			  ["#a3be8c", "#a3be8c"],  #green [5]
-			  ["#e69875", "#e69875"],  #orange [6]
-			  ["#D196B3", "#D196B3"],  #pink [7]
-			  ["#a3be8c", "#a3be8c"],  #green [8]
+			  ["#4c566a", "#4c566a"],  #disabled [5]
+			  ["#ebcb8b", "#ebcb8b"],  #primary/yellow [6]
+			  ["#b48ead", "#b48ead"],  #purple [7]
+			  ["#3b4252", "#3b4252"],  #border [8]
 			  ['#bf616a', '#bf616a'],  #red [9]
-			  ["#ebcb8b", "#ebcb8b"]]  #yellow [10]
+			  ["#d08770", "#d08770"]]  #alert/orange [10]
 			   
 	backgroundColor = "#2e3440"
 	foregroundColor = "#d8dee9"
-	workspaceColor = "#a3be8c"
+	workspaceColor = "#ebcb8b"
 	foregroundColorTwo = "#4c566a"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Gruvbox
 def gruvbox():
-	colors = [["#282828", "#282828"],  #background (dark grey) [0]
-			   ["#928374", "#928374"],  #light grey [1]
-			   ["#ebdbb2", "#ebddb2"],  #foreground (white) [2]
-			   ["#458588", "#458588"],  #blue) [3]
+	colors = [["#282828", "#282828"],  #background (dark) [0]
+			   ["#504945", "#504945"],  #background-alt [1]
+			   ["#ebdbb2", "#ebddb2"],  #foreground [2]
+			   ["#458588", "#458588"],  #secondary/blue [3]
 			   ["#83a598", "#83a598"],  #light blue [4]
-			   ["#b8bb26", "#b8bb26"],  #green [5]
-			   ["#d79921", "#d79921"],  #orange [6]
+			   ["#928374", "#928374"],  #disabled [5]
+			   ["#d79921", "#d79921"],  #primary/orange [6]
 			   ["#d3869b", "#d3869b"],  #pink [7]
-			   ["#b16286", "#b16286"],  #purple [8]
+			   ["#504945", "#504945"],  #border [8]
 			   ['#cc241d', '#cc241d'],  #red [9]
-			   ["#fabd2f", "#fabd2f"],  #yellow [10]
-			   ["#504945", "#504945"]]  #yellow [11]
+			   ["#fabd2f", "#fabd2f"]]  #alert/yellow [10]
 			   
 	backgroundColor = "#282828"
-	foregroundColor = "#ebddb2"
-	workspaceColor = "#b8bb26"
-	foregroundColorTwo = "#928375"
+	foregroundColor = "#ebdbb2"
+	workspaceColor = "#d79921"
+	foregroundColorTwo = "#928374"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Gruvbox Light
@@ -111,8 +110,7 @@ def gruvbox_light():
 			   ["#b16286", "#b16286"],  #pink [7]
 			   ["#8f3f71", "#8f3f71"],  #purple [8]
 			   ['#cc241d', '#cc241d'],  #red [9]
-			   ["#d79921", "#d79921"],  #yellow [10]
-			   ["#689d6a", "#689d6a"]]  #yellow [11]
+			   ["#d79921", "#d79921"]]  #alert/yellow [10]
 			   
 	backgroundColor = "#fbf1c7"
 	foregroundColor = "#282828"
@@ -142,17 +140,17 @@ def catppuccin():
 
 #moonfly
 def moonfly():
-	colors = [["#323437", "#323437"],  #background (dark grey) [0]
-			   ["#9e9e9e", "#9e9e9e"],  #light grey [1]
-			   ["#b2b2b2", "#b2b2b2"],  #foreground (white) [2]
-			   ["#80a0ff", "#80a0ff"],  #blue) [3]
-			   ["#b2ceee", "#b2ceee"],  #light blue [4]
-			   ["#8cc85f", "#8cc85f"],  #green [5]
-			   ["#ef9f76", "#ef9f76"],  #orange [6]
+	colors = [["#080808", "#080808"],  #background (dark) [0]
+			   ["#323437", "#323437"],  #background-alt [1]
+			   ["#b2b2b2", "#b2b2b2"],  #foreground [2]
+			   ["#80a0ff", "#80a0ff"],  #secondary/blue [3]
+			   ["#8cc85f", "#8cc85f"],  #green [4]
+			   ["#9e9e9e", "#9e9e9e"],  #disabled [5]
+			   ["#e3c78a", "#e3c78a"],  #primary/yellow [6]
 			   ["#ff5189", "#ff5189"],  #pink [7]
-			   ["#d183e8", "#d183e8"],  #purple [8]
+			   ["#323437", "#323437"],  #border [8]
 			   ['#ff5454', '#ff5454'],  #red [9]
-			   ["#e3c78a", "#e3c78a"]]  #yellow [10]
+			   ["#ef9f76", "#ef9f76"]]  #alert/orange [10]
 			   
 	backgroundColor = "#080808"
 	foregroundColor = "#b2b2b2"
@@ -162,138 +160,81 @@ def moonfly():
 
 #retro
 def retro():
-	colors = [["#160B00", "#160B00"],  #background (dark grey) [0]
-			   ["#663300", "#663300"],  #darkorange [1]
-			   ["#8B4500", "#8B4500"],  #less dark orange (white) [2]
-			   ["#A35100", "#A35100"],  #less less dark orange [3]
-			   ["#C26100", "#C26100"],  #light orange [4]
-			   ["#E07000", "#E07000"],  #green [5]
-			   ["#FF7F00", "#FF7F00"],  #orange [6]
-			   ["#FF8E1F", "#FF8E1F"],  #pink [7]
-			   ["#FF8E1F", "#FF8E1F"],  #purple [8]
-			   ['#FF8E1F', '#FF8E1F'],  #red [9]
-			   ["#FF8E1F", "#FF8E1F"]]  #yellow [10]
+	colors = [["#160B00", "#160B00"],  #background (dark) [0]
+			   ["#2A1200", "#2A1200"],  #background-alt [1]
+			   ["#DE7B1B", "#DE7B1B"],  #foreground [2]
+			   ["#FF7F00", "#FF7F00"],  #secondary/orange [3]
+			   ["#E07000", "#E07000"],  #orange2 [4]
+			   ["#663300", "#663300"],  #disabled [5]
+			   ["#FF8E1F", "#FF8E1F"],  #primary/bright orange [6]
+			   ["#C26100", "#C26100"],  #orange3 [7]
+			   ["#2A1200", "#2A1200"],  #border [8]
+			   ['#A35100', '#A35100'],  #red [9]
+			   ["#FFAA44", "#FFAA44"]]  #alert/yellow-orange [10]
 			   
 	backgroundColor = "#160B00"
 	foregroundColor = "#DE7B1B"
-	workspaceColor = "#DE7B1B"
-	foregroundColorTwo = "#DE7B1B"
-	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
-
-#whitey
-def whitey():
-	colors = [["#2a2a2a", "#2a2a2a"],   # black [0]
-			   ["#A73D47", "#A73D47"],  # red [1]
-			   ["#87A357", "#87A357"],  # green [2]
-			   ["#EB973D", "#EB973D"],  # yellow [3]
-			   ["#2FA7B8", "#2FA7B8"],  # cyan [4]
-			   ["#A03946", "#A03946"],  # magenta [5]
-			   ["#1D345E", "#1D345E"],  # blue [6]
-			   ["#DBE3EC", "#DBE3EC"],  # white [7]
-			   ["#E5953E", "#E5953E"],  # orange  [8]
-			   ['#A73D47', '#A73D47'],  #red [9]
-			   ["#FF8E1F", "#FF8E1F"]]  #yellow [10]
-			   
-	backgroundColor = "#FCFCFA"
-	foregroundColor = "#2a2a2a"
-	workspaceColor = "#66688F"
-	foregroundColorTwo = "#2a2a2a"
-	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
-
-#fraggle
-def fraggle():
-	colors = [["#1F272E", "#1F272E"],   # dark green [0]
-			   ["#9F789A", "#9F789A"],  # pink [1]
-			   ["#59c99c", "#59c99c"],  # aqua [2]
-			   ["#c7c65a", "#c7c65a"],  # yellow [3]
-			   ["#326878", "#326878"],  # blue [4]
-			   ["#6e708f", "#6e708f"],  # purple [5]
-			   ["#0070ab", "#0070ab"],  # blue [6]
-			   ["#a5a9ab", "#a5a9ab"],  # white [7]
-			   ["#353e43", "#353e43"],  # orange  [8]
-			   ['#b77c97', '#b77c97'],  #red [9]
-			   ["#a1e585", "#a1e585"],  #yellow [10]
-			   ["#f9f871", "#f9f871"],  #yellow [10]
-			   ["#3f8696", "#3f8696"],  #yellow [10]
-			   ["#867597", "#867597"],  #yellow [10]
-			   ["#0080c3", "#0080c3"],  #yellow [10]
-			   ["#62696d", "#62696d"]]  #yellow [10]
-			   
-	backgroundColor = "#1f272e"
-	foregroundColor = "#a5a9ab"
-	workspaceColor = "#3f8696"
-	foregroundColorTwo = "#62696d"
+	workspaceColor = "#FF8E1F"
+	foregroundColorTwo = "#663300"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #monokai
 def monokai():
-	colors = [["#363537", "#363537"],   # dark green [0]
-			   ["#ff6188", "#ff6188"],  # pink [1]
-			   ["#a9dc76", "#a9dc76"],  # green [2]
-			   ["#ffd866", "#ffd866"],  # yellow [3]
-			   ["#fc9867", "#fc9867"],  # blue [4]
-			   ["#ab9df2", "#ab9df2"],  # purple [5]
-			   ["#98dce8", "#98dce8"],  # blue [6]
-			   ["#fdf9f3", "#fdf9f3"],  # white [7]
-			   ["#a6e22e", "#a6e22e"],  # white [7]
-			   ["#66d9ef", "#66d9ef"],  # orange  [8]
-			   ["#2aa198", "#2aa198"],  #red [9]
-			   ["#363537", "#363537"]]  #yellow [10]
+	colors = [["#272822", "#272822"],   # background (dark) [0]
+			   ["#3e3d32", "#3e3d32"],  # background-alt [1]
+			   ["#f8f8f2", "#f8f8f2"],  # foreground [2]
+			   ["#66d9ef", "#66d9ef"],  # secondary/cyan [3]
+			   ["#a6e22e", "#a6e22e"],  # green [4]
+			   ["#75715e", "#75715e"],  # disabled [5]
+			   ["#f92672", "#f92672"],  # primary/pink [6]
+			   ["#ae81ff", "#ae81ff"],  # purple [7]
+			   ["#3e3d32", "#3e3d32"],  # border [8]
+			   ["#f92672", "#f92672"],  # red [9]
+			   ["#fd971f", "#fd971f"]]  # alert/orange [10]
 			   
-	backgroundColor = "#363537"
-	foregroundColor = "#fdf9f3"
-	workspaceColor = "#3f8696"
-	foregroundColorTwo = "#62696d"
+	backgroundColor = "#272822"
+	foregroundColor = "#f8f8f2"
+	workspaceColor = "#f92672"
+	foregroundColorTwo = "#75715e"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 
 #kanagawa
 def kanagawa():
-	colors = [["#16161D", "#16161D"],   # dark green [0]
-			   ["#d27e99", "#d27e99"],  # pink [1]
-			   ["#98bb6c", "#98bb6c"],  # green [2]
-			   ["#e6c384", "#e6c384"],  # yellow [3]
-			   ["#ffa066", "#ffa066"],  # blue [4]
-			   ["#957FB8", "#957FB8"],  # purple [5]
-			   ["#7e9cd8", "#7e9cd8"],  # blue [6]
-			   ["#DCD7BA", "#DCD7BA"],  # white [7]
-			   ["#76946A", "#76946A"],  # white [8]
-			   ["#7fb4ca", "#7fb4ca"],  # orange  [8]
-			   ["#ff9e3b", "#ff9e3b"],  #red [9]
-			   ["#1F1F28", "#1F1F28"]]  #yellow [10]
+	colors = [["#1F1F28", "#1F1F28"],   # background (dark) [0]
+			   ["#2A2A37", "#2A2A37"],  # background-alt [1]
+			   ["#DCD7BA", "#DCD7BA"],  # foreground [2]
+			   ["#7e9cd8", "#7e9cd8"],  # secondary/blue [3]
+			   ["#98bb6c", "#98bb6c"],  # green [4]
+			   ["#54546D", "#54546D"],  # disabled [5]
+			   ["#ff9e3b", "#ff9e3b"],  # primary/orange [6]
+			   ["#957fb8", "#957fb8"],  # purple [7]
+			   ["#2A2A37", "#2A2A37"],  # border [8]
+			   ["#e82424", "#e82424"],  # red [9]
+			   ["#ffa066", "#ffa066"]]  # alert/peach [10]
 			   
 	backgroundColor = "#1F1F28"
 	foregroundColor = "#DCD7BA"
-	workspaceColor = "#FF9E3B"
-	foregroundColorTwo = "#C8C093"
+	workspaceColor = "#ff9e3b"
+	foregroundColorTwo = "#54546D"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #GitHub Dark
 def github_dark():
 	colors = [["#0d1117", "#0d1117"],  #background (dark) [0]
-			   ["#2f363d", "#2f363d"],  #invisibles/dark grey [1]
-			   ["#d0d7de", "#d0d7de"],  #foreground (light grey) [2]
-			   ["#539bf5", "#539bf5"],  #blue [3]
+			   ["#2f363d", "#2f363d"],  #background-alt [1]
+			   ["#d0d7de", "#d0d7de"],  #foreground [2]
+			   ["#539bf5", "#539bf5"],  #secondary/blue [3]
 			   ["#58a6ff", "#58a6ff"],  #caret/light blue [4]
-			   ["#3fb950", "#3fb950"],  #green [5]
-			   ["#d29922", "#d29922"],  #yellow [6]
+			   ["#4e5b55", "#4e5b55"],  #disabled [5]
+			   ["#d29922", "#d29922"],  #primary/yellow [6]
 			   ["#bc8cff", "#bc8cff"],  #magenta [7]
-			   ["#415555", "#415555"],  #selection [8]
-			   ['#ff7b72', '#ff7b72'],  #red [9]
-			   ["#39c5cf", "#39c5cf"]]  #cyan [10]
+			   ["#0f2923", "#0f2923"],  #border [8]
+			   ['#ff0000', '#ff0000'],  #red [9]
+			   ["#D29922", "#D29922"]]  #alert/yellow [10]
 			   
 	backgroundColor = "#0d1117"
 	foregroundColor = "#d0d7de"
-	workspaceColor = "#58a6ff"
-	foregroundColorTwo = "#8b949e"
+	workspaceColor = "#D29922"
+	foregroundColorTwo = "#4e5b55"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
-
-
-
-
-
-
-
-
-
-

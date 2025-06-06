@@ -13,7 +13,7 @@
     padding = 15
     horizontal_padding = 15
     frame_width = 3
-    frame_color = "#b3e5fc"
+    frame_color = "#d29922"
     separator_color = auto
     sort = yes
     idle_threshold = 120
@@ -78,22 +78,22 @@
     per_monitor_dpi = false
 
 [urgency_low]
-    background = "#00141d"
-    foreground = "#80bfff"
+    background = "#0d1117"
+    foreground = "#4e5b55"
     frame_color = "#539bf5"
     timeout = 10
     highlight = "#539bf5"
 
 [urgency_normal]
-    background = "#00141d"
-    foreground = "#ffffff"
-    frame_color = "#b3e5fc"
+    background = "#0d1117"
+    foreground = "#d0d7de"
+    frame_color = "#d29922"
     timeout = 10
-    highlight = "#66d9ff"
+    highlight = "#d29922"
 
 [urgency_critical]
-    background = "#1a0000"
-    foreground = "#ffffff"
-    frame_color = "#d29922"
+    background = "#0d1117"
+    foreground = "#d0d7de"
+    frame_color = "#ff0000"
     timeout = 30
-    highlight = "#d29922"
+    highlight = "#ff0000"

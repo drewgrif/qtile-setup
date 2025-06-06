@@ -216,7 +216,7 @@ def main():
     # Show in rofi
     try:
         process = subprocess.Popen(
-            ["rofi", "-dmenu", "-line-padding", "4", 
+            ["rofi", "-dmenu", "-i", "-line-padding", "4", 
              "-hide-scrollbar", "-show-icons", "-theme", 
              os.path.expanduser("~/.config/qtile/rofi/keybinds.rasi"), 
              "-p", "Keybindings"],
