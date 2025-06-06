@@ -337,29 +337,33 @@ def create_separator():
     )
 
 # Custom widget for keyboard lock indicator
-class CapsLockIndicator(widget.base._TextBox):
-    def __init__(self, **config):
-        super().__init__("", **config)
-        self.add_callbacks({
-            "Button1": lambda: None,
-        })
-    
-    def timer_setup(self):
-        self.timeout_add(1, self.check_caps_lock)
-    
-    def check_caps_lock(self):
-        try:
-            result = subprocess.run(['xset', 'q'], capture_output=True, text=True)
-            if 'Caps Lock:   on' in result.stdout:
-                self.text = "  Caps  "
-                self.background = colors[10][0]  # alert/yellow
-                self.foreground = backgroundColor
-            else:
-                self.text = ""
-                self.background = backgroundColor
-        except:
-            pass
-        self.timeout_add(1, self.check_caps_lock)
+# Using built-in CapsNumLockIndicator widget instead of custom implementation
+
+def create_volume_widget():
+    """Create a volume widget that works across different audio systems"""
+    # Check if pamixer works
+    try:
+        subprocess.run(['pamixer', '--get-volume'], capture_output=True, check=True)
+        # If pamixer works, use it with the Volume widget
+        return widget.Volume(
+            fmt="{}",
+            volume_app="pamixer",
+            volume_up_command="pamixer -i 2",
+            volume_down_command="pamixer -d 2",
+            mute_command="pamixer -t",
+            get_volume_command="pamixer --get-volume",
+            update_interval=0.5,
+            foreground=foregroundColor,
+            padding=2
+        )
+    except:
+        # Fallback to default Volume widget (auto-detects ALSA/Pulse)
+        return widget.Volume(
+            fmt="{}",
+            update_interval=0.5,
+            foreground=foregroundColor,
+            padding=2
+        )
 
 screens = [
     Screen(
@@ -437,8 +441,11 @@ screens = [
                 widget.Spacer(),
                 
                 # Right modules
-                CapsLockIndicator(
+                widget.GenPollText(
+                    func=lambda: " CAPS " if "Caps Lock:   on" in subprocess.run(['xset', 'q'], capture_output=True, text=True).stdout else "",
+                    update_interval=0.5,
                     padding=4,
+                    foreground=colors[10][0],
                 ),
                 widget.Systray(
                     padding=4,
@@ -449,12 +456,7 @@ screens = [
                     foreground=colors[6][0],
                     padding=6
                 ),
-                widget.Volume(
-                    fmt="{}",
-                    update_interval=0.5,
-                    foreground=foregroundColor,
-                    padding=2
-                ),
+                create_volume_widget(),
                 create_separator(),
                 widget.Clock(
                     format='%a, %b %-d',
