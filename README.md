@@ -2,6 +2,8 @@
 
 ![Made for Debian](https://img.shields.io/badge/Made%20for-Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white)
 
+![2025-06-06_11-10_2](https://github.com/user-attachments/assets/b0c5e6e5-066a-43c4-aded-d912328792c2)
+
 A complete Qtile setup script for Debian-based systems.  
 Features dynamic tiling layouts, powerful keybindings, and a polished desktop experience — ready to roll out of the box.
 
@@ -51,7 +53,8 @@ Options:
 
 ### Advanced Usage Examples
 
-```bash
+```bash![2025-06-06_11-10_2](https://github.com/user-attachments/assets/4305ba92-56e3-43f0-9777-2b2f478b0abc)
+
 # Preview what will be installed
 ./install.sh --dry-run
 
