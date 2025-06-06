@@ -245,8 +245,6 @@ keys = [
     Key([mod], "Print", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select)"),
     Key([], "Print", lazy.spawn("flameshot full --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (full screen)"),
     Key([mod, "shift"], "s", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select alt)"),
-
-
     ]
 
 # Scratchpad keybindings
@@ -463,11 +461,6 @@ screens = [
                     padding=4
                 ),
                 create_separator(),
-                widget.TextBox(
-                    text="",
-                    foreground=colors[6][0],
-                    padding=6
-                ),
                 widget.Clock(
                     format='%-l:%M %p',
                     foreground=foregroundColor,
