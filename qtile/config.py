@@ -463,6 +463,11 @@ screens = [
                     padding=4
                 ),
                 create_separator(),
+                widget.TextBox(
+                    text="",
+                    foreground=colors[6][0],
+                    padding=6
+                ),
                 widget.Clock(
                     format='%-l:%M %p',
                     foreground=foregroundColor,
