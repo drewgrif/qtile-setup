@@ -543,6 +543,23 @@ install_wezterm() {
 }
 
 # ============================================
+# Install st
+# ============================================
+install_st() {
+    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
+        echo "Skipping st terminal installation..."
+        return
+    fi
+    
+    if [ "$DRY_RUN" = true ]; then
+        echo "[DRY RUN] Would install st terminal from butterscripts"
+        return
+    fi
+    
+    run_butterscript "st/install_st.sh"
+}
+
+# ============================================
 # Install Fonts
 # ============================================
 install_fonts() {
@@ -670,6 +687,7 @@ setup_qtile_config
 create_qtile_desktop
 install_ftlabs_picom
 install_wezterm
+install_st
 install_fonts
 install_theming
 install_displaymanager
