@@ -259,12 +259,12 @@ keys.extend([
 #groups = [Group(i) for i in ["", "", "", "", "阮", "", "", "", ""]]
 # groups = [Group(i) for i in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]
 groups = [
-	Group('1', label="1", layout="columns"),
-	Group('2', label="2", matches=[Match(wm_class='GitHub Desktop')], layout="columns"),
-	Group('3', label="3", layout="columns"),	
-	Group('4', label="4", layout="columns"),
-	Group('5', label="5", layout="columns"),
-	Group('6', label="6", layout="columns"),
+	Group('1', label="1", layout="bsp"),
+	Group('2', label="2", matches=[Match(wm_class='GitHub Desktop')], layout="bsp"),
+	Group('3', label="3", layout="bsp"),	
+	Group('4', label="4", layout="bsp"),
+	Group('5', label="5", layout="bsp"),
+	Group('6', label="6", layout="bsp"),
 	Group('7', label="7", matches=[Match(wm_class='gimp')], layout="max"),
 	Group('8', label="8", matches=[Match(wm_class='discord')], layout="bsp"),
 	Group('9', label="9", matches=[Match(wm_class='obs')], layout="columns"),
@@ -322,7 +322,7 @@ layout_theme = {
 # Columns - Ultrawide monitors (21:9, 32:9)
 layouts = [
     layout.Bsp(**layout_theme),
-    layout.Columns(**layout_theme, num_columns=4),
+    layout.Columns(**layout_theme, num_columns=3),
     layout.MonadTall(**layout_theme),
     layout.Max(**layout_theme),
     layout.Floating(**layout_theme),
