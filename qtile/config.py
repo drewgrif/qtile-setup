@@ -155,7 +155,6 @@ keys = [
     Key([mod], "j", lazy.group.next_window(), desc="Focus next window"),
     Key([mod], "k", lazy.group.prev_window(), desc="Focus previous window"),
     Key(["mod1"], "Tab", lazy.group.next_window(), desc="Alt-Tab window switching"),
-    Key(["mod1", "shift"], "Tab", lazy.group.prev_window(), desc="Alt-Shift-Tab window switching"),
 
 
 # MOVE WINDOWS UP OR DOWN,LEFT OR RIGHT USING VIM KEYS
@@ -218,10 +217,10 @@ keys = [
 
 # APPLICATION LAUNCHERS
     Key([mod], "b", lazy.spawn(browser), desc="Launch browser"),
-    Key([mod, "shift"], "b", lazy.spawn("firefox-esr -private-window"), desc="Launch Firefox (Private)"),
+    Key([mod, "shift"], "b", lazy.spawn("firefox -private-window"), desc="Launch Firefox (Private)"),
     Key([mod], "Return", lazy.spawn("wezterm"), desc="Launch terminal"),
     Key([mod], "space", lazy.spawn("rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons -theme ~/.config/qtile/rofi/config.rasi"), desc="Launch Rofi"),
-    Key([mod], "h", lazy.spawn(f"python3 {os.path.expanduser('~/.config/qtile/scripts/help')}"), desc="Show keybindings"),
+    Key([mod], "h", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/help")), desc="Show keybindings"),
     Key([mod], "f", lazy.spawn("thunar"), desc="Launch file manager"),
     Key([mod], "e", lazy.spawn("geany"), desc="Launch text editor"),
     Key([mod], "g", lazy.spawn("gimp"), desc="Launch GIMP"),
@@ -245,6 +244,8 @@ keys = [
     Key([mod], "Print", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select)"),
     Key([], "Print", lazy.spawn("flameshot full --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (full screen)"),
     Key([mod, "shift"], "s", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select alt)"),
+
+
     ]
 
 # Scratchpad keybindings
@@ -258,14 +259,14 @@ keys.extend([
 #groups = [Group(i) for i in ["", "", "", "", "阮", "", "", "", ""]]
 # groups = [Group(i) for i in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]
 groups = [
-	Group('1', label="1", layout="bsp"),
-	Group('2', label="2", matches=[Match(wm_class='GitHub Desktop')], layout="bsp"),
-	Group('3', label="3", layout="bsp"),	
-	Group('4', label="4", layout="bsp"),
-	Group('5', label="5", layout="bsp"),
-	Group('6', label="6", layout="bsp"),
+	Group('1', label="1", layout="columns"),
+	Group('2', label="2", matches=[Match(wm_class='GitHub Desktop')], layout="columns"),
+	Group('3', label="3", layout="columns"),	
+	Group('4', label="4", layout="columns"),
+	Group('5', label="5", layout="columns"),
+	Group('6', label="6", layout="columns"),
 	Group('7', label="7", matches=[Match(wm_class='gimp')], layout="max"),
-	Group('8', label="8", matches=[Match(wm_class='discord')], layout="max"),
+	Group('8', label="8", matches=[Match(wm_class='discord')], layout="bsp"),
 	Group('9', label="9", matches=[Match(wm_class='obs')], layout="columns"),
 	Group('0', label="10", layout="bsp"),
 	Group('minus', label="11", layout="bsp"),
@@ -321,7 +322,7 @@ layout_theme = {
 # Columns - Ultrawide monitors (21:9, 32:9)
 layouts = [
     layout.Bsp(**layout_theme),
-    layout.Columns(**layout_theme, num_columns=3),
+    layout.Columns(**layout_theme, num_columns=4),
     layout.MonadTall(**layout_theme),
     layout.Max(**layout_theme),
     layout.Floating(**layout_theme),
@@ -369,7 +370,7 @@ screens = [
                 widget.TextBox(
                     text="󰍛",
                     foreground=colors[6][0],
-                    padding=2
+                    padding=4
                 ),
                 widget.Memory(
                     format='{MemPercent:2.0f}%',
@@ -380,7 +381,7 @@ screens = [
                 widget.TextBox(
                     text="󰻠",
                     foreground=colors[6][0],
-                    padding=2
+                    padding=4
                 ),
                 widget.CPU(
                     format="{load_percent:2.0f}%",
@@ -391,7 +392,7 @@ screens = [
                 widget.TextBox(
                     text="󰋊",
                     foreground=colors[6][0],
-                    padding=6
+                    padding=4
                 ),
                 widget.DF(
                     visible_on_warn=False,
@@ -440,7 +441,7 @@ screens = [
                 widget.TextBox(
                     text="󰕾",
                     foreground=colors[6][0],
-                    padding=6,
+                    padding=4,
                     mouse_callbacks={'Button1': lazy.spawn("pavucontrol")},
                 ),
                 widget.Volume(
