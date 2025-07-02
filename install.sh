@@ -276,14 +276,12 @@ fi
 msg "Setting up configuration..."
 mkdir -p "$CONFIG_DIR"
 
-# Copy configuration directories
-for dir in qtile dunst picom rofi scripts icons; do
-    if [ -d "$SCRIPT_DIR/$dir" ]; then
-        cp -r "$SCRIPT_DIR/$dir" "$CONFIG_DIR/" || die "Failed to copy $dir"
-    else
-        msg "Warning: $dir directory not found, skipping..."
-    fi
-done
+# Copy qtile configuration directory
+if [ -d "$SCRIPT_DIR/qtile" ]; then
+    cp -r "$SCRIPT_DIR/qtile" "$CONFIG_DIR/" || die "Failed to copy qtile configuration"
+else
+    die "qtile directory not found"
+fi
 
 # Make scripts executable
 if [ -d "$CONFIG_DIR/qtile/scripts" ]; then
@@ -331,11 +329,11 @@ if [ "$ONLY_CONFIG" = false ]; then
     get_script "theming/install_theme.sh"
 
     msg "Downloading wallpaper directory..."
-    cd "$CONFIG_DIR"
+    cd "$QTILE_CONFIG_DIR"
     git clone --depth 1 --filter=blob:none --sparse https://github.com/drewgrif/butterscripts.git "$TEMP_DIR/butterscripts-wallpaper" || die "Failed to clone butterscripts"
     cd "$TEMP_DIR/butterscripts-wallpaper"
     git sparse-checkout set wallpaper || die "Failed to set sparse-checkout"
-    cp -r wallpaper "$CONFIG_DIR/" || die "Failed to copy wallpaper directory"
+    cp -r wallpaper "$QTILE_CONFIG_DIR/" || die "Failed to copy wallpaper directory"
 
     msg "Downloading display manager installer..."
     wget -O "$TEMP_DIR/install_lightdm.sh" "https://raw.githubusercontent.com/drewgrif/butterscripts/main/system/install_lightdm.sh"
