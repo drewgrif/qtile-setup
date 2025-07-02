@@ -1,59 +1,30 @@
 #!/bin/bash
 
-# ============================================
-# JustAGuy Linux - Qtile Automated Setup Script
+# JustAGuy Linux - Qtile Setup
 # https://github.com/drewgrif/qtile-setup
-# ============================================
 
-LOG_FILE="$HOME/justaguylinux-install.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
+set -e
 
-# Make script location-independent
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLONED_DIR="$SCRIPT_DIR"
-CONFIG_DIR="$HOME/.config"
-QTILE_CONFIG_DIR="$HOME/.config/qtile"
-BUTTERSCRIPTS_REPO="https://github.com/drewgrif/butterscripts"
-
-# Installation options
-SKIP_PACKAGES=false
-SKIP_THEMES=false
-SKIP_BUTTERSCRIPTS=false
-DRY_RUN=false
+# Command line options
 ONLY_CONFIG=false
+EXPORT_PACKAGES=false
 
-# Parse command line options
+# Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --skip-packages)
-            SKIP_PACKAGES=true
-            shift
-            ;;
-        --skip-themes)
-            SKIP_THEMES=true
-            shift
-            ;;
-        --skip-butterscripts)
-            SKIP_BUTTERSCRIPTS=true
-            shift
-            ;;
-        --dry-run)
-            DRY_RUN=true
-            shift
-            ;;
         --only-config)
             ONLY_CONFIG=true
             shift
             ;;
+        --export-packages)
+            EXPORT_PACKAGES=true
+            shift
+            ;;
         --help)
             echo "Usage: $0 [OPTIONS]"
-            echo "Options:"
-            echo "  --skip-packages      Skip apt package installation"
-            echo "  --skip-themes        Skip theme, icon, and font installations"
-            echo "  --skip-butterscripts Skip all butterscript installations"
-            echo "  --dry-run           Show what would be done without making changes"
-            echo "  --only-config       Only copy config files (skip all installations)"
-            echo "  --help              Show this help message"
+            echo "  --only-config      Only copy config files (skip packages and external tools)"
+            echo "  --export-packages  Export package lists for different distros and exit"
+            echo "  --help            Show this help message"
             exit 0
             ;;
         *)
@@ -64,634 +35,346 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Create a unique base temporary directory for this run
-MAIN_TEMP_DIR="/tmp/justaguylinux_qtile_$(date +%s)_$$"
-mkdir -p "$MAIN_TEMP_DIR"
+# Paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_DIR="$HOME/.config"
+QTILE_CONFIG_DIR="$HOME/.config/qtile"
+TEMP_DIR="/tmp/qtile_$$"
+LOG_FILE="$HOME/qtile-install.log"
 
-command_exists() {
-    command -v "$1" &>/dev/null
-}
+# Logging and cleanup
+exec > >(tee -a "$LOG_FILE") 2>&1
+trap "rm -rf $TEMP_DIR" EXIT
 
-# ============================================
-# Error Handling
-# ============================================
-die() {
-    echo "ERROR: $*" >&2
-    exit 1
-}
-
-# ============================================
-# Temporary Directory Management
-# ============================================
-create_temp_dir() {
-    local name="$1"
-    local temp_dir="$MAIN_TEMP_DIR/$name"
-    mkdir -p "$temp_dir"
-    echo "$temp_dir"
-}
-
-# Clean up all temporary directories on exit (success or failure)
-cleanup() {
-    echo "Cleaning up temporary files..."
-    rm -rf "$MAIN_TEMP_DIR"
-    echo "Cleanup completed."
-}
-trap cleanup EXIT
-
-# ============================================
-# Script Fetching Functions
-# ============================================
-get_butterscript() {
-    local script_path="$1"
-    local script_name=$(basename "$script_path")
-    local temp_script="$MAIN_TEMP_DIR/scripts/$script_name"
-    
-    # Create directory for downloaded scripts
-    mkdir -p "$MAIN_TEMP_DIR/scripts"
-    
-    echo "Fetching script: $script_path from butterscripts repository..."
-    
-    # Quietly download the script
-    wget -q -O "$temp_script" "https://raw.githubusercontent.com/drewgrif/butterscripts/main/$script_path"
-    local wget_status=$?
-    
-    # Check if the download was successful
-    if [ $wget_status -ne 0 ] || [ ! -f "$temp_script" ] || [ ! -s "$temp_script" ]; then
-        echo "ERROR: Failed to download script: $script_path (wget status: $wget_status)"
-        return 1
-    fi
-    
-    # Fix line endings
-    sed -i 's/\r$//' "$temp_script" 2>/dev/null
-    
-    # Make executable
-    chmod +x "$temp_script"
-    
-    # Success - return 0 instead of the path
-    return 0
-}
-
-run_butterscript() {
-    local script_path="$1"
-    local script_name=$(basename "$script_path" .sh)
-    local script_file="$MAIN_TEMP_DIR/scripts/$(basename "$script_path")"
-    
-    echo "Preparing to run: $script_path"
-    
-    # Download the script
-    get_butterscript "$script_path"
-    local get_status=$?
-    
-    if [ $get_status -ne 0 ]; then
-        echo "ERROR: Failed to download script: $script_path"
-        return 1
-    fi
-    
-    # Check that the file exists directly
-    if [ ! -f "$script_file" ]; then
-        echo "ERROR: Script file does not exist: $script_file"
-        return 1
-    fi
-    
-    # Create a temporary directory for the script to use
-    local script_temp_dir="$MAIN_TEMP_DIR/${script_name}_workdir"
-    mkdir -p "$script_temp_dir"
-    
-    echo "Running script: $script_path"
-    echo "Script file: $script_file"
-    echo "Work directory: $script_temp_dir"
-    
-    # Run the script
-    SCRIPT_TEMP_DIR="$script_temp_dir" bash "$script_file"
-    local run_status=$?
-    
-    if [ $run_status -ne 0 ]; then
-        echo "ERROR: Script execution failed with status: $run_status"
-        return 1
-    fi
-    
-    echo "Script execution completed successfully."
-    return 0
-}
-
-# ============================================
-# Color definitions
-# ============================================
+# Colors
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# ============================================
-# Confirm User Intention
-# ============================================
-clear
-echo -e "${CYAN}
- +-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- |j|u|s|t|a|g|u|y|l|i|n|u|x| 
- +-+-+-+-+-+-+-+-+-+-+-+-+-+ 
- |q|t|i|l|e| |s|e|t|u|p|  |  
- +-+-+-+-+-+-+-+-+-+-+-+-+-+                                                                            
-${NC}"
+die() { echo -e "${RED}ERROR: $*${NC}" >&2; exit 1; }
+msg() { echo -e "${CYAN}$*${NC}"; }
 
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
-
-if [ "$ONLY_CONFIG" = true ]; then
-    echo -e "${YELLOW}⚡ Configuration Mode:${NC} Will copy Qtile configuration files only"
-else
-    echo -e "${GREEN}📦 Full Installation:${NC} Will install packages and configure Qtile"
-fi
-
-if [ "$DRY_RUN" = true ]; then
-    echo -e "${YELLOW}🔍 DRY RUN MODE:${NC} No changes will be made to your system"
-fi
-
-# Show active options
-if [ "$SKIP_PACKAGES" = true ] || [ "$SKIP_THEMES" = true ] || [ "$SKIP_BUTTERSCRIPTS" = true ]; then
+# Export package lists for different distros
+export_packages() {
+    echo "=== Qtile Setup - Package Lists for Different Distributions ==="
     echo
-    echo -e "${CYAN}Options enabled:${NC}"
-    [ "$SKIP_PACKAGES" = true ] && echo -e "  • Skipping package installation"
-    [ "$SKIP_THEMES" = true ] && echo -e "  • Skipping themes and fonts"
-    [ "$SKIP_BUTTERSCRIPTS" = true ] && echo -e "  • Skipping external scripts"
-fi
-
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
-
-read -p "$(echo -e "${YELLOW}▶ Do you want to continue? (y/n) ${NC}")" confirm
-[[ ! "$confirm" =~ ^[Yy]$ ]] && die "Installation aborted."
-
-if [ "$ONLY_CONFIG" = false ] && [ "$SKIP_PACKAGES" = false ]; then
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would run: sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get clean"
-    else
-        sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get clean
-    fi
-fi
-
-# ============================================
-# Install Required Packages
-# ============================================
-install_core_packages() {
-    echo "Installing core X11 and Python packages..."
-    sudo apt-get install -y \
-        xorg \
-        xorg-dev \
-        xbacklight \
-        xbindkeys \
-        xvkbd \
-        xinput \
-        python3 \
-        python3-pip \
-        python3-venv \
-        python3-dev \
-        python3-setuptools \
-        python3-wheel \
-        python3-xcffib \
-        python3-cairocffi \
-        libpangocairo-1.0-0 \
-        libcairo-gobject2 \
-        libgtk-3-dev \
-        libgirepository1.0-dev \
-        gir1.2-gtk-3.0 \
-        libdbus-1-dev \
-        libdbus-glib-1-dev \
-        libnotify-bin \
-        libnotify-dev \
-        python3-dbus \
-        pipx \
-        || { echo "ERROR: Core package installation failed."; return 1; }
-}
-
-install_qtile_dependencies() {
-    echo "Installing system libraries for Qtile..."
-    sudo apt-get install -y \
-        libpangocairo-1.0-0 \
-        libxkbcommon-dev \
-        libxkbcommon-x11-dev \
-        || { echo "ERROR: Qtile system dependencies failed."; return 1; }
-}
-
-install_ui_packages() {
-    echo "Installing UI components..."
-    sudo apt-get install -y \
-        rofi \
-        dunst \
-        feh \
-        lxappearance \
-        network-manager-gnome \
-        || { echo "ERROR: UI package installation failed."; return 1; }
-}
-
-install_file_manager_packages() {
-    echo "Installing file management packages..."
-    sudo apt-get install -y \
-        thunar \
-        thunar-archive-plugin \
-        thunar-volman \
-        gvfs-backends \
-        dialog \
-        mtools \
-        smbclient \
-        cifs-utils \
-        unzip \
-        || { echo "ERROR: File manager package installation failed."; return 1; }
-}
-
-install_audio_packages() {
-    echo "Installing audio packages..."
-    sudo apt-get install -y \
-        pavucontrol \
-        pulsemixer \
-        pamixer \
-        pipewire-audio \
-        || { echo "ERROR: Audio package installation failed."; return 1; }
-}
-
-install_utility_packages() {
-    echo "Installing utility packages..."
-    sudo apt-get install -y \
-        avahi-daemon \
-        acpi \
-        acpid \
-        xfce4-power-manager \
-        flameshot \
-        qimgv \
-        firefox-esr \
-        nala \
-        micro \
-        xdg-user-dirs-gtk \
-        || { echo "ERROR: Utility package installation failed."; return 1; }
-}
-
-install_terminal_packages() {
-    echo "Installing terminal and shell utilities..."
-    sudo apt-get install -y \
-        suckless-tools \
-        exa \
-        || { echo "ERROR: Terminal package installation failed."; return 1; }
-}
-
-install_font_packages() {
-    echo "Installing font packages..."
-    sudo apt-get install -y \
-        fonts-recommended \
-        fonts-font-awesome \
-        fonts-terminus \
-        fonts-dejavu \
-        || { echo "ERROR: Font package installation failed."; return 1; }
-}
-
-install_python_packages() {
-    echo "Ensuring pipx is configured..."
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would ensure pipx path"
-        return
-    fi
     
-    # Ensure pipx is in PATH and configured
+    # Combine all packages
+    local all_packages=(
+        "${PACKAGES_CORE[@]}"
+        "${PACKAGES_QTILE[@]}"
+        "${PACKAGES_UI[@]}"
+        "${PACKAGES_FILE_MANAGER[@]}"
+        "${PACKAGES_AUDIO[@]}"
+        "${PACKAGES_UTILITIES[@]}"
+        "${PACKAGES_TERMINAL[@]}"
+        "${PACKAGES_FONTS[@]}"
+        "${PACKAGES_BUILD[@]}"
+    )
+    
+    echo "DEBIAN/UBUNTU:"
+    echo "sudo apt install ${all_packages[*]}"
+    echo "Note: After packages, run: pipx install qtile && pipx inject qtile psutil"
+    echo
+    
+    # Arch equivalents
+    local arch_packages=(
+        "xorg-server xorg-xinit xorg-xbacklight xbindkeys xvkbd xorg-xinput"
+        "python python-pip python-xcffib python-cairocffi python-dbus python-pipx"
+        "libxkbcommon pango cairo gtk3 gobject-introspection libnotify"
+        "rofi dunst feh lxappearance network-manager-applet"
+        "thunar thunar-archive-plugin thunar-volman"
+        "gvfs dialog mtools smbclient cifs-utils unzip"
+        "pavucontrol pulsemixer pamixer pipewire-pulse"
+        "avahi acpi acpid xfce4-power-manager flameshot"
+        "qimgv firefox micro xdg-user-dirs-gtk"
+        "suckless-tools eza"
+        "ttf-font-awesome terminus-font ttf-dejavu"
+        "cmake meson ninja curl pkgconf base-devel"
+    )
+    
+    echo "ARCH LINUX:"
+    echo "sudo pacman -S ${arch_packages[*]}"
+    echo
+    
+    # Fedora equivalents  
+    local fedora_packages=(
+        "xorg-x11-server-Xorg xorg-x11-xinit xbacklight xbindkeys xvkbd xinput"
+        "python3 python3-pip python3-xcffib python3-cairocffi python3-dbus pipx"
+        "libxkbcommon-devel pango cairo gtk3-devel gobject-introspection-devel libnotify"
+        "rofi dunst feh lxappearance NetworkManager-gnome"
+        "thunar thunar-archive-plugin thunar-volman"
+        "gvfs dialog mtools samba-client cifs-utils unzip"
+        "pavucontrol pulsemixer pamixer pipewire-pulseaudio"
+        "avahi acpi acpid xfce4-power-manager flameshot"
+        "qimgv firefox micro xdg-user-dirs-gtk"
+        "eza"
+        "fontawesome-fonts terminus-fonts dejavu-fonts-all"
+        "cmake meson ninja-build curl pkgconfig gcc make git"
+    )
+    
+    echo "FEDORA:"
+    echo "sudo dnf install ${fedora_packages[*]}"
+    echo
+    
+    echo "NOTE: Some packages may have different names or may not be available"
+    echo "in all distributions. You may need to:"
+    echo "  - Find equivalent packages in your distro's repositories"
+    echo "  - Install some tools from source"
+    echo "  - Use alternative package managers (AUR for Arch, Flatpak, etc.)"
+    echo
+    echo "After installing packages, you can use:"
+    echo "  $0 --only-config    # To copy just the Qtile configuration files"
+}
+
+# Check if we should export packages and exit
+if [ "$EXPORT_PACKAGES" = true ]; then
+    export_packages
+    exit 0
+fi
+
+# Banner
+clear
+echo -e "${CYAN}"
+echo " +-+-+-+-+-+-+-+-+-+-+-+-+-+ "
+echo " |j|u|s|t|a|g|u|y|l|i|n|u|x| "
+echo " +-+-+-+-+-+-+-+-+-+-+-+-+-+ "
+echo " |q|t|i|l|e| |s|e|t|u|p|    | "
+echo " +-+-+-+-+-+-+-+-+-+-+-+-+-+ "
+echo -e "${NC}\n"
+
+read -p "Install Qtile? (y/n) " -n 1 -r
+echo
+[[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+
+# Update system
+if [ "$ONLY_CONFIG" = false ]; then
+    msg "Updating system..."
+    sudo apt-get update && sudo apt-get upgrade -y
+else
+    msg "Skipping system update (--only-config mode)"
+fi
+
+# Package groups for better organization
+PACKAGES_CORE=(
+    xorg xorg-dev xbacklight xbindkeys xvkbd xinput
+    build-essential xdotool
+    libnotify-bin libnotify-dev
+)
+
+PACKAGES_QTILE=(
+    python3 python3-pip python3-venv python3-dev python3-setuptools
+    python3-wheel python3-xcffib python3-cairocffi libpangocairo-1.0-0
+    libcairo-gobject2 libgtk-3-dev libgirepository1.0-dev gir1.2-gtk-3.0
+    libdbus-1-dev libdbus-glib-1-dev python3-dbus pipx
+    libxkbcommon-dev libxkbcommon-x11-dev
+)
+
+PACKAGES_UI=(
+    rofi dunst feh lxappearance network-manager-gnome
+)
+
+PACKAGES_FILE_MANAGER=(
+    thunar thunar-archive-plugin thunar-volman
+    gvfs-backends dialog mtools smbclient cifs-utils ripgrep fd-find unzip
+)
+
+PACKAGES_AUDIO=(
+    pavucontrol pulsemixer pamixer pipewire-audio
+)
+
+PACKAGES_UTILITIES=(
+    avahi-daemon acpi acpid xfce4-power-manager
+    flameshot qimgv nala micro xdg-user-dirs-gtk
+)
+
+PACKAGES_TERMINAL=(
+    suckless-tools
+)
+
+PACKAGES_FONTS=(
+    fonts-recommended fonts-font-awesome fonts-terminus fonts-dejavu
+)
+
+PACKAGES_BUILD=(
+    cmake meson ninja-build curl pkg-config
+)
+
+
+# Install packages by group
+if [ "$ONLY_CONFIG" = false ]; then
+    msg "Installing core packages..."
+    sudo apt-get install -y "${PACKAGES_CORE[@]}" || die "Failed to install core packages"
+
+    msg "Installing Qtile dependencies..."
+    sudo apt-get install -y "${PACKAGES_QTILE[@]}" || die "Failed to install Qtile dependencies"
+
+    msg "Installing UI components..."
+    sudo apt-get install -y "${PACKAGES_UI[@]}" || die "Failed to install UI packages"
+
+    msg "Installing file manager..."
+    sudo apt-get install -y "${PACKAGES_FILE_MANAGER[@]}" || die "Failed to install file manager"
+
+    msg "Installing audio support..."
+    sudo apt-get install -y "${PACKAGES_AUDIO[@]}" || die "Failed to install audio packages"
+
+    msg "Installing system utilities..."
+    sudo apt-get install -y "${PACKAGES_UTILITIES[@]}" || die "Failed to install utilities"
+    
+    # Try firefox-esr first (Debian), then firefox (Ubuntu)
+    sudo apt-get install -y firefox-esr 2>/dev/null || sudo apt-get install -y firefox 2>/dev/null || msg "Note: firefox not available, skipping..."
+
+    msg "Installing terminal tools..."
+    sudo apt-get install -y "${PACKAGES_TERMINAL[@]}" || die "Failed to install terminal tools"
+    
+    # Try exa first (Debian 12), then eza (newer Ubuntu)
+    sudo apt-get install -y exa 2>/dev/null || sudo apt-get install -y eza 2>/dev/null || msg "Note: exa/eza not available, skipping..."
+
+    msg "Installing fonts..."
+    sudo apt-get install -y "${PACKAGES_FONTS[@]}" || die "Failed to install fonts"
+
+    msg "Installing build dependencies..."
+    sudo apt-get install -y "${PACKAGES_BUILD[@]}" || die "Failed to install build tools"
+
+    # Enable services
+    sudo systemctl enable avahi-daemon acpid
+
+    # Install Qtile using pipx
+    msg "Installing Qtile using pipx..."
+    export PATH="$HOME/.local/bin:$PATH"
     pipx ensurepath
-}
+    pipx install qtile
+    pipx inject qtile psutil
+    msg "Qtile installation completed successfully"
+else
+    msg "Skipping package installation (--only-config mode)"
+fi
 
-install_packages() {
-    if [ "$SKIP_PACKAGES" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping package installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install packages in groups: core, qtile, ui, file manager, audio, utilities, terminal, fonts, python"
-        return
-    fi
-    
-    echo "Installing required packages..."
-    
-    # Install each group, but continue if one fails
-    install_core_packages || echo "Warning: Some core packages failed to install"
-    install_qtile_dependencies || echo "Warning: Some Qtile dependencies failed to install"
-    install_ui_packages || echo "Warning: Some UI packages failed to install"
-    install_file_manager_packages || echo "Warning: Some file manager packages failed to install"
-    install_audio_packages || echo "Warning: Some audio packages failed to install"
-    install_utility_packages || echo "Warning: Some utility packages failed to install"
-    install_terminal_packages || echo "Warning: Some terminal packages failed to install"
-    install_font_packages || echo "Warning: Some font packages failed to install"
-    install_python_packages || echo "Warning: Some Python packages failed to install"
-    
-    echo "Package installation completed."
-}
+# Setup directories
+xdg-user-dirs-update
+mkdir -p ~/Screenshots
 
-install_reqs() {
-    if [ "$SKIP_PACKAGES" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping build dependencies installation..."
-        return
+# Handle existing config
+if [ -d "$QTILE_CONFIG_DIR" ]; then
+    clear
+    read -p "Found existing qtile config. Backup? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        mv "$QTILE_CONFIG_DIR" "$QTILE_CONFIG_DIR.bak.$(date +%s)"
+        msg "Backed up existing config"
+    else
+        clear
+        read -p "Overwrite without backup? (y/n) " -n 1 -r
+        echo
+        [[ $REPLY =~ ^[Yy]$ ]] || die "Installation cancelled"
+        rm -rf "$QTILE_CONFIG_DIR"
     fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install build dependencies: cmake, meson, ninja-build, curl, pkg-config, build-essential"
-        return
-    fi
-    
-    echo "Updating package lists and installing required dependencies..."
-    sudo apt-get install -y cmake meson ninja-build curl pkg-config build-essential || { echo "Package installation failed."; exit 1; }
-}
+fi
 
-# ============================================
-# Enable System Services
-# ============================================
-enable_services() {
-    if [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping service configuration..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would enable services: avahi-daemon, acpid"
-        return
-    fi
-    
-    echo "Enabling required services..."
-    sudo systemctl enable avahi-daemon || echo "Warning: Failed to enable avahi-daemon."
-    sudo systemctl enable acpid || echo "Warning: Failed to enable acpid."
-}
+# Copy configs
+msg "Setting up configuration..."
+mkdir -p "$CONFIG_DIR"
 
-# ============================================
-# Set Up User Directories
-# ============================================
-setup_user_dirs() {
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would update user directories and create Screenshots folder"
-        return
+# Copy configuration directories
+for dir in qtile dunst picom rofi scripts icons; do
+    if [ -d "$SCRIPT_DIR/$dir" ]; then
+        cp -r "$SCRIPT_DIR/$dir" "$CONFIG_DIR/" || die "Failed to copy $dir"
+    else
+        msg "Warning: $dir directory not found, skipping..."
     fi
-    
-    xdg-user-dirs-update
-    mkdir -p ~/Screenshots/
-    mkdir -p ~/Pictures/Wallpapers/
-}
+done
 
-# ============================================
-# Check for Existing Qtile Config
-# ============================================
-check_qtile() {
-    if [ -d "$QTILE_CONFIG_DIR" ]; then
-        echo "An existing ~/.config/qtile directory was found."
-        read -p "Backup existing configuration? (y/n) " response
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            backup_dir="$HOME/.config/qtile_backup_$(date +%Y-%m-%d_%H-%M-%S)"
-            mv "$QTILE_CONFIG_DIR" "$backup_dir" || die "Failed to backup existing config."
-            echo "Backup saved to $backup_dir"
-        fi
-    fi
-}
+# Make scripts executable
+if [ -d "$CONFIG_DIR/qtile/scripts" ]; then
+    chmod +x "$CONFIG_DIR/qtile/scripts/"* 2>/dev/null || true
+fi
 
-create_qtile_desktop() {
-    if [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping qtile.desktop file creation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would create /usr/share/xsessions/qtile.desktop"
-        return
-    fi
-    
-    # Ensure /usr/share/xsessions directory exists
-    if [ ! -d /usr/share/xsessions ]; then
-        sudo mkdir -p /usr/share/xsessions
-        if [ $? -ne 0 ]; then
-            echo "Failed to create /usr/share/xsessions directory. Exiting."
-            exit 1
-        fi
-    fi
-
-    # Adding qtile.desktop to Lightdm xsessions directory
-    cat > ./temp << "EOF"
+# Create desktop entry for Qtile
+if [ "$ONLY_CONFIG" = false ]; then
+    sudo mkdir -p /usr/share/xsessions
+    cat <<EOF | sudo tee /usr/share/xsessions/qtile.desktop >/dev/null
 [Desktop Entry]
 Name=Qtile
 Comment=Qtile Session
+Exec=$HOME/.local/bin/qtile start
 Type=Application
 Keywords=wm;tiling
 EOF
-    sudo cp ./temp /usr/share/xsessions/qtile.desktop
-    rm ./temp
-    
-    u=$USER
-    sudo echo "Exec=/home/$u/.local/bin/qtile start" | sudo tee -a /usr/share/xsessions/qtile.desktop
+fi
+
+# Butterscript helper
+get_script() {
+    wget -qO- "https://raw.githubusercontent.com/drewgrif/butterscripts/main/$1" | bash
 }
 
-# ============================================
-# Move Config Files
-# ============================================
-setup_qtile_config() {
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would copy Qtile configuration files to $CONFIG_DIR"
-        return
+# Install essential components
+if [ "$ONLY_CONFIG" = false ]; then
+    mkdir -p "$TEMP_DIR" && cd "$TEMP_DIR"
+
+    msg "Installing picom..."
+    get_script "setup/install_picom.sh"
+
+    msg "Installing wezterm..."
+    get_script "wezterm/install_wezterm.sh"
+
+    msg "Installing st terminal..."
+    wget -O "$TEMP_DIR/install_st.sh" "https://raw.githubusercontent.com/drewgrif/butterscripts/main/st/install_st.sh"
+    chmod +x "$TEMP_DIR/install_st.sh"
+    # Run in current terminal session to preserve interactivity
+    bash "$TEMP_DIR/install_st.sh"
+
+    msg "Installing fonts..."
+    get_script "theming/install_nerdfonts.sh"
+
+    msg "Installing themes..."
+    get_script "theming/install_theme.sh"
+
+    msg "Downloading wallpaper directory..."
+    cd "$CONFIG_DIR"
+    git clone --depth 1 --filter=blob:none --sparse https://github.com/drewgrif/butterscripts.git "$TEMP_DIR/butterscripts-wallpaper" || die "Failed to clone butterscripts"
+    cd "$TEMP_DIR/butterscripts-wallpaper"
+    git sparse-checkout set wallpaper || die "Failed to set sparse-checkout"
+    cp -r wallpaper "$CONFIG_DIR/" || die "Failed to copy wallpaper directory"
+
+    msg "Downloading display manager installer..."
+    wget -O "$TEMP_DIR/install_lightdm.sh" "https://raw.githubusercontent.com/drewgrif/butterscripts/main/system/install_lightdm.sh"
+    chmod +x "$TEMP_DIR/install_lightdm.sh"
+    msg "Running display manager installer..."
+    # Run in current terminal session to preserve interactivity
+    bash "$TEMP_DIR/install_lightdm.sh"
+
+    # Bashrc configuration
+    clear
+    read -p "Replace your .bashrc with justaguylinux .bashrc? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        msg "Configuring bashrc..."
+        get_script "system/add_bashrc.sh"
     fi
-    
-    mkdir -p "$CONFIG_DIR"
-    
-    # Copy qtile-specific configurations
-    for dir in qtile dunst picom rofi scripts sxhkd wallpaper; do
-        if [ -d "$CLONED_DIR/$dir" ]; then
-            cp -r "$CLONED_DIR/$dir" "$CONFIG_DIR/" || echo "Warning: Failed to copy $dir."
+
+    # Optional tools
+    clear
+    read -p "Install optional tools (browsers, editors, etc)? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        msg "Downloading optional tools installer..."
+        wget -O "$TEMP_DIR/optional_tools.sh" "https://raw.githubusercontent.com/drewgrif/butterscripts/main/setup/optional_tools.sh"
+        chmod +x "$TEMP_DIR/optional_tools.sh"
+        msg "Running optional tools installer..."
+        # Run in current terminal session to preserve interactivity
+        if bash "$TEMP_DIR/optional_tools.sh"; then
+            msg "Optional tools completed successfully"
+        else
+            msg "Optional tools exited (this is normal if cancelled by user)"
         fi
-    done
+    fi
+else
+    msg "Skipping external tool installation (--only-config mode)"
+fi
 
-    # Set proper permissions for scripts
-    if [ -d "$CONFIG_DIR/qtile/scripts" ]; then
-        chmod +x "$CONFIG_DIR/qtile/scripts/"*.sh 2>/dev/null || true
-        chmod +x "$CONFIG_DIR/qtile/scripts/"* 2>/dev/null || true
-    fi
-    
-    echo "Qtile configuration files have been copied successfully."
-}
-
-# ============================================
-# Install ft-picom
-# ============================================
-install_ftlabs_picom() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping picom installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install ftlabs picom from butterscripts"
-        return
-    fi
-    
-    run_butterscript "setup/install_picom.sh"
-}
-
-# ============================================
-# Install Wezterm
-# ============================================
-install_wezterm() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping wezterm installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install wezterm from butterscripts"
-        return
-    fi
-    
-    run_butterscript "wezterm/install_wezterm.sh"
-}
-
-# ============================================
-# Install st
-# ============================================
-install_st() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping st terminal installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install st terminal from butterscripts"
-        return
-    fi
-    
-    run_butterscript "st/install_st.sh"
-}
-
-# ============================================
-# Install Fonts
-# ============================================
-install_fonts() {
-    if [ "$SKIP_THEMES" = true ] || [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping font installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install nerd fonts from butterscripts"
-        return
-    fi
-    
-    echo "Installing fonts..."
-    run_butterscript "theming/install_nerdfonts.sh"
-}
-
-# ============================================
-# Install GTK Theme & Icons
-# ============================================
-install_theming() {
-    if [ "$SKIP_THEMES" = true ] || [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping theme installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install GTK themes and icons from butterscripts"
-        return
-    fi
-    
-    run_butterscript "theming/install_theme.sh"
-}
-
-# ============================================
-# Install Login Manager
-# ============================================
-install_displaymanager() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping display manager installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install LightDM from butterscripts"
-        return
-    fi
-    
-    run_butterscript "system/install_lightdm.sh"
-}
-
-# ============================================
-# Replace .bashrc
-# ============================================
-replace_bashrc() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping bashrc configuration..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would update bashrc from butterscripts"
-        return
-    fi
-    
-    run_butterscript "system/add_bashrc.sh"
-}
-
-# ============================================
-# Install Optional Packages
-# ============================================
-install_optionals() {
-    if [ "$SKIP_BUTTERSCRIPTS" = true ] || [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping optional tools installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install optional tools from butterscripts"
-        return
-    fi
-    
-    run_butterscript "setup/optional_tools.sh"
-}
-
-# ============================================
-# Install Qtile using pipx
-# ============================================
-install_qtile() {
-    if [ "$ONLY_CONFIG" = true ]; then
-        echo "Skipping Qtile installation..."
-        return
-    fi
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would install Qtile using pipx"
-        return
-    fi
-    
-    echo "Installing Qtile using pipx..."
-    
-    # Ensure pipx path is in PATH
-    export PATH="$HOME/.local/bin:$PATH"
-    
-    # Install qtile with pipx
-    pipx install qtile
-    
-    echo "Installing psutil in qtile environment..."
-    # Inject psutil into qtile's virtual environment
-    pipx inject qtile psutil
-    
-    echo "Qtile installation completed successfully."
-}
-
-# ============================================
-# Main Execution
-# ============================================
-install_packages
-install_reqs
-install_qtile
-enable_services
-setup_user_dirs
-check_qtile
-setup_qtile_config
-create_qtile_desktop
-install_ftlabs_picom
-install_wezterm
-install_st
-install_fonts
-install_theming
-install_displaymanager
-replace_bashrc
-install_optionals
-
-echo "All installations completed successfully!"
+# Done
+echo -e "\n${GREEN}Installation complete!${NC}"
+echo "1. Log out and select 'Qtile' from your display manager"
+echo "2. Press Super+Return to open terminal"
+echo "3. Press Super+r to open rofi"
