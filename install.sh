@@ -409,4 +409,4 @@ fi
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo "1. Log out and select 'Qtile' from your display manager"
 echo "2. Press Super+Return to open terminal"
-echo "3. Press Super+r to open rofi"
+echo "3. Press Super+spacebar to open rofi"
