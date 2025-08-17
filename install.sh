@@ -75,12 +75,13 @@ export_packages() {
     
     echo "DEBIAN 12/UBUNTU:"
     echo "sudo apt install ${all_packages[*]}"
-    echo "Note: After packages, run: pipx install qtile && pipx inject qtile psutil"
+    echo "Note: After packages, run: pipx install qtile==0.31.0 && pipx inject qtile psutil"
+    echo "IMPORTANT: Qtile 0.33+ has compatibility issues with Debian 12 - use version 0.31.0"
     echo
     
     echo "DEBIAN 13+ (Trixie and newer):"
-    echo "sudo apt install qtile ${all_packages[*]}"
-    echo "Note: Qtile is available as a system package with all dependencies included"
+    echo "sudo apt install qtile python3-psutil ${all_packages[*]}"
+    echo "Note: Qtile is available as a system package, python3-psutil needed for CPU/memory widgets"
     echo
     
     # Arch equivalents
@@ -180,9 +181,11 @@ PACKAGES_CORE=(
     libnotify-bin libnotify-dev
 )
 
-# For Debian 13+, qtile package handles most Python dependencies
+# For Debian 13+, qtile package handles most Python dependencies but needs psutil for CPU/memory widgets
 if [ "$IS_DEBIAN_13_OR_NEWER" = true ]; then
-    PACKAGES_QTILE=()  # Empty - qtile package handles all dependencies
+    PACKAGES_QTILE=(
+        python3-psutil  # Required for CPU and memory monitoring in qtile bar
+    )
 else
     PACKAGES_QTILE=(
         python3 python3-pip python3-venv python3-dev python3-setuptools
@@ -264,16 +267,27 @@ if [ "$ONLY_CONFIG" = false ]; then
 
     # Install Qtile - use system package for Debian 13+, pipx for older versions
     if [ "$IS_DEBIAN_13_OR_NEWER" = true ]; then
-        msg "Installing Qtile from Debian packages..."
+        msg "Installing Qtile from Debian packages (with python3-psutil for widgets)..."
         sudo apt-get install -y qtile || die "Failed to install qtile package"
         msg "Qtile installation from system packages completed successfully"
     else
-        msg "Installing Qtile using pipx..."
+        msg "Installing Qtile 0.31.0 using pipx (0.33+ has compatibility issues with Debian 12)..."
         export PATH="$HOME/.local/bin:$PATH"
         pipx ensurepath
-        pipx install qtile
+        # Install specific version that works with Debian 12
+        pipx install qtile==0.31.0
         pipx inject qtile psutil
-        msg "Qtile installation via pipx completed successfully"
+        
+        # Verify installation and version
+        if command -v qtile >/dev/null 2>&1; then
+            QTILE_VERSION=$(qtile --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            msg "Qtile $QTILE_VERSION installation via pipx completed successfully"
+            if [[ "$QTILE_VERSION" != "0.31.0" ]]; then
+                msg "WARNING: Expected Qtile 0.31.0 but got $QTILE_VERSION - there may be compatibility issues"
+            fi
+        else
+            die "Qtile installation failed - qtile command not found"
+        fi
     fi
 else
     msg "Skipping package installation (--only-config mode)"

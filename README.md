@@ -23,28 +23,29 @@ The installer automatically chooses the best method based on your system:
 
 ### Debian 13 (Trixie) and newer ✅ Recommended
 - Uses the native `qtile` package from Debian repositories (v0.31.0)
-- Simple and clean: `sudo apt install qtile`
+- Simple and clean: `sudo apt install qtile python3-psutil`
 - **Stable and tested** - Debian's rigorous testing ensures reliability
 - All dependencies handled automatically by the package manager
 - Integrates seamlessly with the system
 - Better system integration than pipx installation
+- **Note:** `python3-psutil` is required for CPU and memory monitoring widgets in the qtile bar
 
 ### Debian 12 (Bookworm) and older
-- Uses `pipx` to install Qtile in an isolated environment
+- Uses `pipx` to install Qtile 0.31.0 in an isolated environment
 - **Why pipx?**
   - Qtile is not available in Debian 12 repositories
   - Provides access to qtile when system packages aren't available
-  - Easy updates with `pipx upgrade qtile`
   - Isolated environment prevents Python package conflicts
+- **Version Note:** Installs Qtile 0.31.0 specifically as version 0.33+ has compatibility issues with Debian 12
 
 ### Manual Installation Options
 If you prefer to handle Qtile installation yourself:
 ```bash
 # Debian 13+ (recommended - stable and well-tested)
-sudo apt install qtile
+sudo apt install qtile python3-psutil
 
-# Debian 12 or if system package unavailable
-pipx install qtile && pipx inject qtile psutil
+# Debian 12 or if system package unavailable (use version 0.31.0)
+pipx install qtile==0.31.0 && pipx inject qtile psutil
 
 # Then run the installer with config-only mode
 ./install.sh --only-config
