@@ -9,22 +9,46 @@ Features dynamic tiling layouts, powerful keybindings, and a polished desktop ex
 
 > Part of the [JustAGuy Linux](https://github.com/drewgrif) window manager collection.
 
+## 📦 System Requirements
+
+- **Debian 12 (Bookworm)** - Uses pipx installation method
+- **Debian 13 (Trixie)** - Uses native qtile package from repository
+- **Ubuntu** and other Debian-based systems - Uses pipx installation method
+
+The installer automatically detects your system version and chooses the appropriate installation method.
+
 ## Installation Method
 
-This installer uses `pipx` to install Qtile. Here's why:
+The installer automatically chooses the best method based on your system:
 
-### Why pipx instead of apt?
-- **Latest Version**: Qtile is not yet available in Debian stable repositories (coming in the next release)
-- **Easy Updates**: With pipx, you can always update to the latest Qtile version using `pipx upgrade qtile`
-- **Isolated Environment**: pipx automatically creates a virtual environment, preventing conflicts with system Python packages
-- **Future-Proof**: Even when Qtile arrives in Debian repos, pipx will allow you to use newer versions if desired
+### Debian 13 (Trixie) and newer ✅ Recommended
+- Uses the native `qtile` package from Debian repositories (v0.31.0)
+- Simple and clean: `sudo apt install qtile`
+- **Stable and tested** - Debian's rigorous testing ensures reliability
+- All dependencies handled automatically by the package manager
+- Integrates seamlessly with the system
+- Better system integration than pipx installation
 
-### Alternative Methods (not used, but available)
-- **apt install qtile**: Will be available in future Debian releases, but will lag behind in features
-- **pip install --user**: Works but less isolated than pipx
-- **Manual virtual environment**: More complex, essentially what pipx does automatically
+### Debian 12 (Bookworm) and older
+- Uses `pipx` to install Qtile in an isolated environment
+- **Why pipx?**
+  - Qtile is not available in Debian 12 repositories
+  - Provides access to qtile when system packages aren't available
+  - Easy updates with `pipx upgrade qtile`
+  - Isolated environment prevents Python package conflicts
 
-The installer keeps things simple and reliable by using pipx, which handles all the Python dependency management automatically.
+### Manual Installation Options
+If you prefer to handle Qtile installation yourself:
+```bash
+# Debian 13+ (recommended - stable and well-tested)
+sudo apt install qtile
+
+# Debian 12 or if system package unavailable
+pipx install qtile && pipx inject qtile psutil
+
+# Then run the installer with config-only mode
+./install.sh --only-config
+```
 
 ---
 

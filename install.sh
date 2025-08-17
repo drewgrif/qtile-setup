@@ -73,9 +73,14 @@ export_packages() {
         "${PACKAGES_BUILD[@]}"
     )
     
-    echo "DEBIAN/UBUNTU:"
+    echo "DEBIAN 12/UBUNTU:"
     echo "sudo apt install ${all_packages[*]}"
     echo "Note: After packages, run: pipx install qtile && pipx inject qtile psutil"
+    echo
+    
+    echo "DEBIAN 13+ (Trixie and newer):"
+    echo "sudo apt install qtile ${all_packages[*]}"
+    echo "Note: Qtile is available as a system package with all dependencies included"
     echo
     
     # Arch equivalents
@@ -148,6 +153,18 @@ read -p "Install Qtile? (y/n) " -n 1 -r
 echo
 [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
 
+# Detect Debian version
+DEBIAN_VERSION=$(lsb_release -rs 2>/dev/null || echo "0")
+DEBIAN_MAJOR_VERSION=$(echo "$DEBIAN_VERSION" | cut -d. -f1)
+IS_DEBIAN_13_OR_NEWER=false
+
+if [ "$DEBIAN_MAJOR_VERSION" -ge 13 ] 2>/dev/null; then
+    IS_DEBIAN_13_OR_NEWER=true
+    msg "Detected Debian $DEBIAN_VERSION - will use system qtile package"
+else
+    msg "Detected Debian $DEBIAN_VERSION - will install qtile via pipx"
+fi
+
 # Update system
 if [ "$ONLY_CONFIG" = false ]; then
     msg "Updating system..."
@@ -163,13 +180,18 @@ PACKAGES_CORE=(
     libnotify-bin libnotify-dev
 )
 
-PACKAGES_QTILE=(
-    python3 python3-pip python3-venv python3-dev python3-setuptools
-    python3-wheel python3-xcffib python3-cairocffi libpangocairo-1.0-0
-    libcairo-gobject2 libgtk-3-dev libgirepository1.0-dev gir1.2-gtk-3.0
-    libdbus-1-dev libdbus-glib-1-dev python3-dbus pipx
-    libxkbcommon-dev libxkbcommon-x11-dev
-)
+# For Debian 13+, qtile package handles most Python dependencies
+if [ "$IS_DEBIAN_13_OR_NEWER" = true ]; then
+    PACKAGES_QTILE=()  # Empty - qtile package handles all dependencies
+else
+    PACKAGES_QTILE=(
+        python3 python3-pip python3-venv python3-dev python3-setuptools
+        python3-wheel python3-xcffib python3-cairocffi libpangocairo-1.0-0
+        libcairo-gobject2 libgtk-3-dev libgirepository1.0-dev gir1.2-gtk-3.0
+        libdbus-1-dev libdbus-glib-1-dev python3-dbus pipx
+        libxkbcommon-dev libxkbcommon-x11-dev
+    )
+fi
 
 PACKAGES_UI=(
     rofi dunst feh lxappearance network-manager-gnome
@@ -240,13 +262,19 @@ if [ "$ONLY_CONFIG" = false ]; then
     # Enable services
     sudo systemctl enable avahi-daemon acpid
 
-    # Install Qtile using pipx
-    msg "Installing Qtile using pipx..."
-    export PATH="$HOME/.local/bin:$PATH"
-    pipx ensurepath
-    pipx install qtile
-    pipx inject qtile psutil
-    msg "Qtile installation completed successfully"
+    # Install Qtile - use system package for Debian 13+, pipx for older versions
+    if [ "$IS_DEBIAN_13_OR_NEWER" = true ]; then
+        msg "Installing Qtile from Debian packages..."
+        sudo apt-get install -y qtile || die "Failed to install qtile package"
+        msg "Qtile installation from system packages completed successfully"
+    else
+        msg "Installing Qtile using pipx..."
+        export PATH="$HOME/.local/bin:$PATH"
+        pipx ensurepath
+        pipx install qtile
+        pipx inject qtile psutil
+        msg "Qtile installation via pipx completed successfully"
+    fi
 else
     msg "Skipping package installation (--only-config mode)"
 fi
@@ -290,8 +318,11 @@ fi
 
 # Create desktop entry for Qtile
 if [ "$ONLY_CONFIG" = false ]; then
-    sudo mkdir -p /usr/share/xsessions
-    cat <<EOF | sudo tee /usr/share/xsessions/qtile.desktop >/dev/null
+    # For Debian 13+, the system package should create its own desktop entry
+    # Only create one for pipx installations
+    if [ "$IS_DEBIAN_13_OR_NEWER" = false ]; then
+        sudo mkdir -p /usr/share/xsessions
+        cat <<EOF | sudo tee /usr/share/xsessions/qtile.desktop >/dev/null
 [Desktop Entry]
 Name=Qtile
 Comment=Qtile Session
@@ -299,6 +330,9 @@ Exec=$HOME/.local/bin/qtile start
 Type=Application
 Keywords=wm;tiling
 EOF
+    else
+        msg "Using system-provided qtile desktop entry"
+    fi
 fi
 
 # Butterscript helper
