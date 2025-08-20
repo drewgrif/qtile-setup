@@ -245,6 +245,8 @@ keys = [
     Key([], "Print", lazy.spawn("flameshot full --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (full screen)"),
     Key([mod, "shift"], "s", lazy.spawn("flameshot gui --path " + os.path.expanduser("~/Screenshots/")), desc="Screenshot (region select alt)"),
 
+# CLIPBOARD TO NOTES
+    Key([mod, "shift"], "v", lazy.spawn("bash -ic 'note clip && notify-send \" Clipboard saved to notes\"'"), desc="Save clipboard to notes"),
 
     ]
 
