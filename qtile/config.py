@@ -6,6 +6,7 @@ from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 import os
 import subprocess
+from typing import List
 
 from libqtile import hook
 from colors import *
@@ -487,7 +488,7 @@ mouse = [
 ]
 
 dgroups_key_binder = None
-dgroups_app_rules = []  # type: list
+dgroups_app_rules = List []
 follow_mouse_focus = True
 bring_front_click = False
 cursor_warp = False
