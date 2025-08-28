@@ -1,0 +1,7 @@
+
+# Simple ignore to hide file created by an IDE
+.vscode/*
+.idea/*
+
+# Ignore python cache
+__pycache__
