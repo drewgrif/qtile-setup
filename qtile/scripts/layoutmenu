@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Layout menu for Qtile using rofi
+# Allows selecting and switching to different layouts
+
+layouts=(
+    "BSP"
+    "Columns"
+    "MonadTall"
+    "Max"
+    "Floating"
+    "Zoomy"
+)
+
+# Show menu
+chosen=$(printf '%s\n' "${layouts[@]}" | rofi -dmenu -i -p "Select Layout" -theme ~/.config/qtile/rofi/config.rasi)
+
+# Switch to selected layout
+case $chosen in
+    "BSP")
+        qtile cmd-obj -o layout -f next
+        # Cycle until we hit bsp
+        while [[ $(qtile cmd-obj -o group -f info | grep -o '"name": "[^"]*"' | head -1 | cut -d'"' -f4) != "bsp" ]]; do
+            qtile cmd-obj -o layout -f next
+        done
+        ;;
+    "Columns")
+        qtile cmd-obj -o layout columns -f info 2>/dev/null || qtile cmd-obj -o layout -f next
+        ;;
+    "MonadTall")
+        qtile cmd-obj -o layout monadtall -f info 2>/dev/null || qtile cmd-obj -o layout -f next
+        ;;
+    "Max")
+        qtile cmd-obj -o layout max -f info 2>/dev/null || qtile cmd-obj -o layout -f next
+        ;;
+    "Floating")
+        qtile cmd-obj -o layout floating -f info 2>/dev/null || qtile cmd-obj -o layout -f next
+        ;;
+    "Zoomy")
+        qtile cmd-obj -o layout zoomy -f info 2>/dev/null || qtile cmd-obj -o layout -f next
+        ;;
+esac
+
+# Show notification with selected layout
+[ -n "$chosen" ] && notify-send "Layout" "$chosen" -t 1500 -u low

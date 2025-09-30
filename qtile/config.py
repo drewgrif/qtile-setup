@@ -208,6 +208,7 @@ keys = [
 
 # QTILE LAYOUT KEYS
     Key([mod], "Tab", lazy.next_layout(), lazy.function(notify_layout()), desc="Toggle between layouts"),
+    Key([mod, "shift"], "l", lazy.spawn(os.path.expanduser("~/.config/qtile/scripts/layoutmenu")), desc="Layout menu"),
 
 # TOGGLE FLOATING LAYOUT
     Key([mod, "shift"], "space", 
@@ -488,7 +489,7 @@ mouse = [
 ]
 
 dgroups_key_binder = None
-dgroups_app_rules = List []
+dgroups_app_rules = []
 follow_mouse_focus = True
 bring_front_click = False
 cursor_warp = False
