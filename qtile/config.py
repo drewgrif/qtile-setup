@@ -373,36 +373,36 @@ screens = [
                 # Left modules - System info
                 widget.TextBox(
                     text="󰍛",
-                    foreground=colors[6][0],
+                    foreground="#4fc3f7",
                     padding=4
                 ),
                 widget.Memory(
                     format='{MemPercent:2.0f}%',
-                    foreground=foregroundColor,
+                    foreground="#FFFFFF",
                     padding=2
                 ),
                 create_separator(),
                 widget.TextBox(
                     text="󰻠",
-                    foreground=colors[6][0],
+                    foreground="#ff6b6b",
                     padding=4
                 ),
                 widget.CPU(
                     format="{load_percent:2.0f}%",
-                    foreground=foregroundColor,
+                    foreground="#FFFFFF",
                     padding=2
                 ),
                 create_separator(),
                 widget.TextBox(
                     text="󰋊",
-                    foreground=colors[6][0],
+                    foreground="#ffc107",
                     padding=4
                 ),
                 widget.DF(
                     visible_on_warn=False,
                     format='{r:.0f}%',
                     partition='/',
-                    foreground=foregroundColor,
+                    foreground="#FFFFFF",
                     padding=2
                 ),
                 
@@ -460,16 +460,26 @@ screens = [
                     padding=2
                 ),
                 create_separator(),
-                widget.Clock(
-                    format='%a, %b %-d',
-                    foreground=foregroundColorTwo,
+                widget.TextBox(
+                    text="󰸗",
+                    foreground="#80bfff",
                     padding=4
                 ),
+                widget.Clock(
+                    format='%a %b %-d',
+                    foreground="#FFFFFF",
+                    padding=2
+                ),
                 create_separator(),
+                widget.TextBox(
+                    text="󰥔",
+                    foreground="#9c27b0",
+                    padding=4
+                ),
                 widget.Clock(
                     format='%-l:%M %p',
-                    foreground=foregroundColor,
-                    padding=4
+                    foreground="#FFFFFF",
+                    padding=2
                 ),
                 widget.Spacer(length=8),
             ],
