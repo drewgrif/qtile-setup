@@ -1,13 +1,26 @@
 # 🪟 qtile-setup
 
+> **🚨 REPOSITORY MIGRATION NOTICE**
+>
+> This repository has moved to **[Codeberg](https://codeberg.org/justaguylinux/qtile-setup)**
+>
+> - **Primary repository**: https://codeberg.org/justaguylinux/qtile-setup
+> - **This GitHub repository**: Mirror only (read-only)
+> - **Migration deadline**: December 15, 2025 - GitHub mirror will be archived
+>
+> Please update your bookmarks and git remotes:
+> ```bash
+> git remote set-url origin https://codeberg.org/justaguylinux/qtile-setup.git
+> ```
+
 ![Made for Debian](https://img.shields.io/badge/Made%20for-Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white)
 
 ![2025-06-06_11-10_2](https://github.com/user-attachments/assets/b0c5e6e5-066a-43c4-aded-d912328792c2)
 
-A complete Qtile setup script for Debian-based systems.  
+A complete Qtile setup script for Debian-based systems.
 Features dynamic tiling layouts, powerful keybindings, and a polished desktop experience — ready to roll out of the box.
 
-> Part of the [JustAGuy Linux](https://github.com/drewgrif) window manager collection.
+> Part of the [JustAGuy Linux](https://codeberg.org/justaguylinux) window manager collection.
 
 ## 📦 System Requirements
 
